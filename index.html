@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iPhones Baratos | Loja Oficial de iPhones Novos e Seminovos</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -18,18 +21,22 @@
 </head>
 <body class="text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
 
+    <!-- BARRA SUPERIOR -->
     <div class="bg-black text-white text-xs py-2 px-4 text-center font-medium">
         <span><i class="fa-solid fa-truck-fast text-blue-400 mr-2"></i>Frete Grátis via Sedex para todo o Brasil em compras acima de R$ 3.000</span>
     </div>
 
+    <!-- HEADER -->
     <header class="sticky top-0 z-40 apple-glass border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
+                <!-- LOGO -->
                 <a href="#" class="flex items-center gap-2 group">
                     <i class="fa-brands fa-apple text-2xl group-hover:scale-105 transition-transform"></i>
                     <span class="font-bold text-lg tracking-tight text-slate-900">IPHONESBARATOS<span class="text-blue-600">.COM.BR</span></span>
                 </a>
 
+                <!-- BUSCA -->
                 <div class="hidden md:flex flex-1 max-w-md mx-8">
                     <div class="relative w-full">
                         <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Buscar iPhone 15, 16 Pro Max, Lacrado..." class="w-full bg-gray-100 border border-gray-200 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition">
@@ -37,11 +44,12 @@
                     </div>
                 </div>
 
+                <!-- AÇÕES -->
                 <div class="flex items-center gap-4">
-                    <button onclick="openModal('modalAddress')" class="hidden sm:flex items-center gap-1.5 text-xs text-gray-600 hover:text-slate-900">
+                    <div class="hidden sm:flex items-center gap-1.5 text-xs text-gray-600">
                         <i class="fa-solid fa-location-dot text-blue-600"></i>
                         <span>Goiânia-GO</span>
-                    </button>
+                    </div>
 
                     <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-blue-600 transition">
                         <i class="fa-solid fa-bag-shopping text-xl"></i>
@@ -51,6 +59,7 @@
             </div>
         </div>
 
+        <!-- CATEGORIAS -->
         <nav class="border-t border-gray-100 bg-white/50 backdrop-blur-md overflow-x-auto hide-scrollbar py-2.5">
             <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 text-xs font-medium whitespace-nowrap">
                 <button onclick="filterCategory('all')" class="text-blue-600 font-semibold hover:underline">Todos os iPhones</button>
@@ -61,6 +70,7 @@
         </nav>
     </header>
 
+    <!-- BANNER VÍDEO HERO -->
     <section class="relative bg-black w-full overflow-hidden">
         <video autoplay muted loop playsinline class="hero-video w-full">
             <source src="video_hero.mp4" type="video/mp4">
@@ -73,6 +83,7 @@
         </div>
     </section>
 
+    <!-- INFORMAÇÕES DE CONFIANÇA -->
     <section class="bg-white border-b border-gray-200 py-6">
         <div class="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div class="p-3">
@@ -83,7 +94,7 @@
             <div class="p-3">
                 <i class="fa-solid fa-truck-fast text-2xl text-blue-600 mb-2"></i>
                 <h4 class="font-bold text-sm">Entrega Garantida</h4>
-                <p class="text-xs text-gray-500">Envio via Sedex / Correios com Seguro</p>
+                <p class="text-xs text-gray-500">Envio via Sedex / Correios / Loggi</p>
             </div>
             <div class="p-3">
                 <i class="fa-solid fa-credit-card text-2xl text-blue-600 mb-2"></i>
@@ -98,6 +109,7 @@
         </div>
     </section>
 
+    <!-- CATÁLOGO DE PRODUTOS -->
     <main id="catalogo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="flex items-center justify-between mb-8">
             <div>
@@ -107,18 +119,16 @@
         </div>
 
         <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            </div>
+            <!-- Produtos renderizados via JS -->
+        </div>
     </main>
 
+    <!-- RODAPÉ -->
     <footer class="bg-slate-900 text-gray-400 py-12 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
                 <h3 class="text-white font-bold text-lg mb-3">IPHONESBARATOS.COM.BR</h3>
                 <p class="text-xs leading-relaxed text-gray-400">Sua loja especializada na venda de iPhones novos lacrados e seminovos de altíssima qualidade com envio seguro para todo o Brasil.</p>
-                <div class="mt-4 flex gap-4 text-white text-xl">
-                    <i class="fa-brands fa-instagram"></i>
-                    <i class="fa-brands fa-whatsapp"></i>
-                </div>
             </div>
             <div>
                 <h4 class="text-white font-bold text-sm mb-3">Endereço da Loja Física</h4>
@@ -131,8 +141,8 @@
             </div>
             <div>
                 <h4 class="text-white font-bold text-sm mb-3">Formas de Pagamento Aceitas</h4>
-                <p class="text-xs mb-3">Aceitamos PIX com desconto, Cartão de Crédito em até 12x, Cartão de Débito e Boleto direto no site.</p>
-                <div class="flex flex-wrap gap-2 text-2xl text-gray-300">
+                <p class="text-xs mb-3">PIX com desconto à vista ou parcelado no Cartão de Crédito em até 12x.</p>
+                <div class="flex flex-wrap gap-3 text-2xl text-gray-300">
                     <i class="fa-brands fa-pix text-green-400"></i>
                     <i class="fa-brands fa-cc-visa"></i>
                     <i class="fa-brands fa-cc-mastercard"></i>
@@ -145,6 +155,7 @@
         </div>
     </footer>
 
+    <!-- CARRINHO / CHECKOUT MODAL -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
@@ -154,7 +165,8 @@
             </div>
 
             <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4">
-                </div>
+                <!-- Itens do Carrinho -->
+            </div>
 
             <div class="p-4 border-t bg-gray-50 space-y-3">
                 <div id="cartSummary" class="space-y-1 text-sm">
@@ -180,24 +192,47 @@
         </div>
     </div>
 
+    <!-- SCRIPT DO CATÁLOGO DE PRODUTOS -->
     <script>
         const products = [
-            // LACRADOS
-            { id: 1, name: "iPhone 18 Pro 256GB", price: 9885, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
-            { id: 2, name: "iPhone 18 Pro Max 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
-            { id: 3, name: "iPhone 17 Pro Max 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
-            { id: 4, name: "iPhone 16 128GB", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
-            { id: 5, name: "iPhone 15 128GB", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
+            // IPHONE 18 PRO MAX / PRO
+            { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
+            { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 9885, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Titanio Branco White Titanium.png" },
             
-            // CPO
-            { id: 6, name: "iPhone 13 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=500" },
-            { id: 7, name: "iPhone 14 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=500" },
+            // IPHONE 17 PRO
+            { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 17 pro Titanio Azul.png" },
+            { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 17 pro Black.png" },
+            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iphone 17 pro branco.png" },
 
-            // SEMINOVOS
-            { id: 8, name: "iPhone 15 Pro Max 256GB (Seminovo Grade A)", price: 3949, category: "seminovos", warranty: "Seminovo Revisado", img: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500" },
-            { id: 9, name: "iPhone 14 Pro Max 128GB (Seminovo Grade A)", price: 3200, category: "seminovos", warranty: "Seminovo Revisado", img: "https://images.unsplash.com/photo-1663499482523-1c0c1bae4ce1?w=500" },
-            { id: 10, name: "iPhone 13 128GB (Seminovo Grade A-)", price: 1869, category: "seminovos", warranty: "Seminovo Revisado", img: "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?w=500" },
-            { id: 11, name: "iPhone 11 256GB (Seminovo Grade A-)", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=500" }
+            // IPHONE 16 SERIES
+            { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 pro verde azul.png" },
+            { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iphone 16 pro rosa.png" },
+            { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 plus ultramarinho.png" },
+            { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 plus Preto.png" },
+
+            // IPHONE 15 SERIES
+            { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 pro Verde.png" },
+            { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 Plus Azul.png" },
+            { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 Plus Rosa.jpg" },
+            { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 plus amarelo.jpg" },
+
+            // IPHONE 14 SERIES
+            { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "Iphone 14 Plus Vermelho.jpg" },
+            { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "Iphone 14 Plus Azul.jpg" },
+            { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "iphone14-meia-noite (1).jpg" },
+
+            // IPHONE 13 SERIES
+            { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "iphone13-azul (1).png" },
+            { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 Rosa.png" },
+            { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 verde.png" },
+            { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 Estelar.png" },
+            { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 meia noite.png" },
+
+            // IPHONE 11 SERIES
+            { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-verde (1).png" },
+            { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-Roxo (1).png" },
+            { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-branco (1).png" },
+            { id: 25, name: "iPhone 11 Preto 256GB", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 11 preto.png" }
         ];
 
         let cart = [];
@@ -207,15 +242,77 @@
             grid.innerHTML = items.map(p => `
                 <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col justify-between">
                     <div>
-                        <div class="relative bg-gray-50 rounded-xl p-4 mb-4 text-center">
+                        <div class="relative bg-gray-50 rounded-xl p-4 mb-4 text-center h-52 flex items-center justify-center">
                             <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded ${p.category === 'lacrados' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
                                 ${p.warranty}
                             </span>
-                            <img src="${p.img}" alt="${p.name}" class="h-44 object-contain mx-auto">
+                            <img src="${encodeURIComponent(p.img)}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
                         <p class="text-xs text-gray-500 mb-2">À vista no PIX com desconto</p>
                         <div class="text-lg font-extrabold text-slate-900">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
                         <div class="text-xs text-gray-500">ou 12x de R$ ${(p.price * 1.15 / 12).toLocaleString('pt-BR', {minimumFractionDigits: 2})} no cartão</div>
                     </div>
-                    <button onclick="
+                    <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function filterCategory(cat) {
+            if (cat === 'all') renderProducts(products);
+            else renderProducts(products.filter(p => p.category === cat));
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            renderProducts(products.filter(p => p.name.toLowerCase().includes(query)));
+        }
+
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id);
+            cart.push(prod);
+            updateCart();
+            toggleCart();
+        }
+
+        function updateCart() {
+            document.getElementById('cartCount').innerText = cart.length;
+            const container = document.getElementById('cartItems');
+            container.innerHTML = cart.map((item, idx) => `
+                <div class="flex items-center justify-between border-b pb-2">
+                    <div>
+                        <h5 class="font-bold text-xs">${item.name}</h5>
+                        <p class="text-xs text-blue-600 font-semibold">R$ ${item.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                    </div>
+                    <button onclick="removeFromCart(${idx})" class="text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('cartTotal').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            updateCart();
+        }
+
+        function toggleCart() {
+            document.getElementById('cartModal').classList.toggle('hidden');
+        }
+
+        function processOrder() {
+            const name = document.getElementById('custName').value;
+            if (!name || cart.length === 0) {
+                alert('Por favor, preencha seus dados de envio e adicione itens ao carrinho.');
+                return;
+            }
+            alert(`Obrigado ${name}! Seu pedido foi registrado com sucesso.`);
+        }
+
+        renderProducts(products);
+    </script>
+</body>
+</html>
