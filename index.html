@@ -14,7 +14,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f7; }
         .apple-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); }
-        .hero-video { width: 100%; height: auto; max-height: 80vh; object-fit: cover; }
+        .hero-video { width: 100%; height: auto; max-height: 75vh; object-fit: cover; display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -38,9 +38,9 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-blue-600 transition">
+                    <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-blue-600 transition flex items-center gap-2">
                         <i class="fa-solid fa-bag-shopping text-xl"></i>
-                        <span id="cartCount" class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                        <span id="cartCount" class="bg-blue-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
                     </button>
                 </div>
             </div>
@@ -56,17 +56,12 @@
         </nav>
     </header>
 
-    <!-- BANNER HERO -->
+    <!-- BANNER HERO COM VÍDEO (BOTÃO "VER TODOS" REMOVIDO) -->
     <section class="relative bg-black w-full overflow-hidden">
         <video autoplay muted loop playsinline class="hero-video w-full">
             <source src="assets/video_hero.mp4" type="video/mp4">
             Seu navegador não suporta vídeos HTML5.
         </video>
-        <div class="absolute bottom-6 left-0 right-0 text-center z-10 px-4">
-            <a href="#catalogo" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-8 py-3 rounded-full transition shadow-lg hover:shadow-blue-500/30">
-                Ver Todos os iPhones
-            </a>
-        </div>
     </section>
 
     <!-- DIFERENCIAIS -->
@@ -141,17 +136,23 @@
         </div>
     </footer>
 
-    <!-- MODAL CARRINHO -->
+    <!-- MODAL CARRINHO COM BOTAO VOLTAR E REMOÇÃO DE PRODUTOS -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
+            
+            <!-- HEADER DO CARRINHO (COM BOTÃO CONTINUAR COMPRANDO / VOLTAR) -->
             <div class="p-4 border-b flex items-center justify-between bg-gray-50">
-                <h3 class="font-bold text-lg text-slate-900">Seu Carrinho de Compras</h3>
+                <button onclick="toggleCart()" class="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar / Comprar mais
+                </button>
+                <h3 class="font-bold text-base text-slate-900">Seu Carrinho</h3>
                 <button onclick="toggleCart()" class="text-gray-400 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div id="cartContainer" class="flex-1 overflow-y-auto p-4 flex flex-col justify-between">
                 <div>
+                    <!-- LISTA DE ITENS COM BOTÃO DE EXCLUIR DESTAQUE -->
                     <div id="cartItems" class="space-y-3 mb-4"></div>
                 </div>
 
@@ -277,16 +278,20 @@
             if (!container) return;
             
             if (cart.length === 0) {
-                container.innerHTML = `<p class="text-xs text-center text-gray-500 py-6">Seu carrinho está vazio.</p>`;
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i>
+                        <p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p>
+                    </div>`;
             } else {
                 container.innerHTML = cart.map((item, idx) => `
-                    <div class="flex items-center justify-between border-b pb-2 bg-gray-50 p-2 rounded-lg">
+                    <div class="flex items-center justify-between border border-gray-200 pb-2 bg-white p-3 rounded-xl shadow-sm">
                         <div class="flex-1 pr-2">
                             <h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
-                            <p class="text-xs text-blue-600 font-semibold">R$ ${item.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                            <p class="text-xs text-blue-600 font-bold mt-1">R$ ${item.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                         </div>
-                        <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-700 p-1 text-sm transition" title="Remover produto">
-                            <i class="fa-solid fa-trash"></i>
+                        <button onclick="removeFromCart(${idx})" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1" title="Excluir produto">
+                            <i class="fa-solid fa-trash-can"></i> Excluir
                         </button>
                     </div>
                 `).join('');
@@ -379,12 +384,12 @@
                     cart = [];
                     updateCartUI();
                 } else {
-                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Tente novamente.'));
+                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Verifique as credenciais do Mercado Pago.'));
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
                 }
             } catch (err) {
-                alert('Ocorreu um erro ao conectar com a API da Vercel.');
+                alert('Erro ao conectar com o servidor da Vercel.');
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
             }
