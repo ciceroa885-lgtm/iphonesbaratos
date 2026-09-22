@@ -6,6 +6,8 @@
     <title>iPhones Baratos | Loja Oficial de iPhones Novos e Seminovos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mercado Pago SDK -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -73,7 +75,7 @@
     <!-- BANNER VÍDEO HERO -->
     <section class="relative bg-black w-full overflow-hidden">
         <video autoplay muted loop playsinline class="hero-video w-full">
-            <source src="video_hero.mp4" type="video/mp4">
+            <source src="assets/video_hero.mp4" type="video/mp4">
             Seu navegador não suporta vídeos HTML5.
         </video>
         <div class="absolute bottom-6 left-0 right-0 text-center z-10 px-4">
@@ -164,75 +166,83 @@
                 <button onclick="toggleCart()" class="text-gray-400 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-4">
-                <!-- Itens do Carrinho -->
-            </div>
+            <div id="cartContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div id="cartItems" class="space-y-4">
+                    <!-- Itens do Carrinho -->
+                </div>
 
-            <div class="p-4 border-t bg-gray-50 space-y-3">
-                <div id="cartSummary" class="space-y-1 text-sm">
-                    <div class="flex justify-between font-bold text-base text-slate-900">
-                        <span>Total:</span>
-                        <span id="cartTotal">R$ 0,00</span>
+                <div class="p-4 border-t bg-gray-50 space-y-3 mt-auto">
+                    <div id="cartSummary" class="space-y-1 text-sm">
+                        <div class="flex justify-between font-bold text-base text-slate-900">
+                            <span>Total:</span>
+                            <span id="cartTotal">R$ 0,00</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="space-y-2 pt-2 border-t">
-                    <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente para Envio</h4>
-                    <input type="text" id="custName" placeholder="Nome Completo" class="w-full text-xs p-2 border rounded">
-                    <input type="email" id="custEmail" placeholder="Seu E-mail" class="w-full text-xs p-2 border rounded">
-                    <input type="tel" id="custPhone" placeholder="WhatsApp / Telefone" class="w-full text-xs p-2 border rounded">
-                    <input type="text" id="custCEP" placeholder="CEP de Entrega" class="w-full text-xs p-2 border rounded">
-                    <input type="text" id="custAddress" placeholder="Endereço, Número e Bairro" class="w-full text-xs p-2 border rounded">
-                </div>
+                    <div class="space-y-2 pt-2 border-t">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente para Envio</h4>
+                        <input type="text" id="custName" placeholder="Nome Completo" class="w-full text-xs p-2 border rounded">
+                        <input type="text" id="custCPF" placeholder="CPF (obrigatório para nota/pagamento)" class="w-full text-xs p-2 border rounded">
+                        <input type="email" id="custEmail" placeholder="Seu E-mail" class="w-full text-xs p-2 border rounded">
+                        <input type="tel" id="custPhone" placeholder="WhatsApp / Telefone" class="w-full text-xs p-2 border rounded">
+                        <input type="text" id="custCEP" placeholder="CEP de Entrega" class="w-full text-xs p-2 border rounded">
+                        <input type="text" id="custAddress" placeholder="Endereço, Número e Bairro" class="w-full text-xs p-2 border rounded">
+                    </div>
 
-                <button onclick="processOrder()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
-                    Finalizar Compra / Ir para Pagamento
-                </button>
+                    <button onclick="processOrder()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
+                        Finalizar Compra / Ir para Pagamento
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT DO CATÁLOGO DE PRODUTOS -->
+    <!-- SCRIPT DO CATÁLOGO E MERCADO PAGO -->
     <script>
+        // INICIALIZAÇÃO MERCADO PAGO
+        const mp = new MercadoPago('APP_USR-f0da0c4b-16d8-4afa-960a-45e327279ef1', {
+            locale: 'pt-BR'
+        });
+
         const products = [
             // IPHONE 18 PRO MAX / PRO
-            { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
-            { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 9885, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Titanio Branco White Titanium.png" },
+            { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
+            { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 9885, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Titanio Branco White Titanium.png" },
             
             // IPHONE 17 PRO
-            { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 17 pro Titanio Azul.png" },
-            { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 17 pro Black.png" },
-            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iphone 17 pro branco.png" },
+            { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Titanio Azul.png" },
+            { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Black.png" },
+            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 17 pro branco.png" },
 
             // IPHONE 16 SERIES
-            { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 pro verde azul.png" },
-            { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "iphone 16 pro rosa.png" },
-            { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 plus ultramarinho.png" },
-            { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 16 plus Preto.png" },
+            { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 pro verde azul.png" },
+            { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 16 pro rosa.png" },
+            { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus ultramarinho.png" },
+            { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus Preto.png" },
 
             // IPHONE 15 SERIES
-            { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 pro Verde.png" },
-            { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 Plus Azul.png" },
-            { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 Plus Rosa.jpg" },
-            { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "Iphone 15 plus amarelo.jpg" },
+            { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 pro Verde.png" },
+            { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Azul.png" },
+            { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Rosa.jpg" },
+            { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 plus amarelo.jpg" },
 
             // IPHONE 14 SERIES
-            { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "Iphone 14 Plus Vermelho.jpg" },
-            { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "Iphone 14 Plus Azul.jpg" },
-            { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "iphone14-meia-noite (1).jpg" },
+            { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Vermelho.jpg" },
+            { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Azul.jpg" },
+            { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/iphone14-meia-noite (1).jpg" },
 
             // IPHONE 13 SERIES
-            { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "iphone13-azul (1).png" },
-            { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 Rosa.png" },
-            { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 verde.png" },
-            { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 Estelar.png" },
-            { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 13 meia noite.png" },
+            { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/iphone13-azul (1).png" },
+            { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Rosa.png" },
+            { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 verde.png" },
+            { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Estelar.png" },
+            { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 meia noite.png" },
 
             // IPHONE 11 SERIES
-            { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-verde (1).png" },
-            { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-Roxo (1).png" },
-            { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone11-branco (1).png" },
-            { id: 25, name: "iPhone 11 Preto 256GB", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "Iphone 11 preto.png" }
+            { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-verde (1).png" },
+            { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-Roxo (1).png" },
+            { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-branco (1).png" },
+            { id: 25, name: "iPhone 11 Preto 256GB", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 11 preto.png" }
         ];
 
         let cart = [];
@@ -246,7 +256,7 @@
                             <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded ${p.category === 'lacrados' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
                                 ${p.warranty}
                             </span>
-                            <img src="${encodeURIComponent(p.img)}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
+                            <img src="${p.img}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
                         <p class="text-xs text-gray-500 mb-2">À vista no PIX com desconto</p>
@@ -305,11 +315,53 @@
 
         function processOrder() {
             const name = document.getElementById('custName').value;
-            if (!name || cart.length === 0) {
-                alert('Por favor, preencha seus dados de envio e adicione itens ao carrinho.');
+            const cpf = document.getElementById('custCPF').value;
+            const email = document.getElementById('custEmail').value;
+            const address = document.getElementById('custAddress').value;
+
+            if (!name || !cpf || cart.length === 0) {
+                alert('Por favor, preencha seu Nome, CPF e certifique-se de ter itens no carrinho.');
                 return;
             }
-            alert(`Obrigado ${name}! Seu pedido foi registrado com sucesso.`);
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const container = document.getElementById('cartContainer');
+
+            // Renderiza a confirmação e cobrança diretamente na tela do carrinho
+            container.innerHTML = `
+                <div class="text-center py-6 px-4">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-check text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Pedido Registrado!</h3>
+                    <p class="text-xs text-gray-600 mb-4">Obrigado, <strong>${name}</strong>. Efetue o pagamento via PIX para liberar o envio.</p>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-left">
+                        <div class="text-xs text-gray-500 mb-1">Total a pagar:</div>
+                        <div class="text-lg font-extrabold text-slate-900 mb-3">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                        
+                        <label class="text-[11px] font-semibold text-gray-700 block mb-1">Chave Copia e Cola PIX:</label>
+                        <input type="text" readonly id="pixCode" value="00020126580014br.gov.bcb.pix0114000000000000005204000053039865405${total.toFixed(2)}5802BR5925IPHONESBARATOS6008GOIANIA62070503***6304" class="w-full text-xs p-2 border rounded bg-white text-center font-mono mb-2">
+                        <button onclick="copiarChavePix()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2">
+                            <i class="fa-regular fa-copy"></i> Copiar Chave PIX
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] text-gray-500">
+                        Após confirmação, o envio será feito para:<br>
+                        <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
+                    </p>
+                </div>
+            `;
+        }
+
+        function copiarChavePix() {
+            const input = document.getElementById('pixCode');
+            if (input) {
+                input.select();
+                document.execCommand('copy');
+                alert('Chave PIX copiada com sucesso!');
+            }
         }
 
         renderProducts(products);
