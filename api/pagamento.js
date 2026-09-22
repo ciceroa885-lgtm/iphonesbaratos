@@ -1,14 +1,5 @@
-const mercadopago = require('mercadopago');
-
-// Token de Produção
-const ACCESS_TOKEN = 'APP_USR-96b55a37-1470-4730-b2ce-31e45c2bbb6b';
-
-mercadopago.configure({
-    access_token: ACCESS_TOKEN
-});
-
 module.exports = async (req, res) => {
-    // Liberar CORS
+    // Configuração de CORS
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -22,62 +13,82 @@ module.exports = async (req, res) => {
         return res.status(405).json({ erro: 'Método não permitido' });
     }
 
+    const token = process.env.MP_ACCESS_TOKEN || 'APP_USR-96b55a37-1470-4730-b2ce-31e45c2bbb6b';
+
     try {
         const { nome, cpf, email, total, metodo } = req.body;
 
         if (metodo === 'card') {
-            // Cartão de Crédito - Checkout Transparente Mercado Pago
-            const preference = {
-                items: [
-                    {
-                        title: 'Compra iPhones Baratos',
-                        unit_price: Number(total),
-                        quantity: 1,
-                        currency_id: 'BRL'
-                    }
-                ],
-                payer: {
-                    name: nome,
-                    email: email,
-                    identification: {
-                        type: 'CPF',
-                        number: String(cpf).replace(/\D/g, '')
-                    }
+            // Chamada direta à API do Mercado Pago para criar Preferência
+            const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                payment_methods: {
-                    installments: 12
-                }
-            };
-
-            const prefResponse = await mercadopago.preferences.create(preference, {
-                access_token: ACCESS_TOKEN
+                body: JSON.stringify({
+                    items: [
+                        {
+                            title: 'Compra iPhones Baratos',
+                            unit_price: Number(total),
+                            quantity: 1,
+                            currency_id: 'BRL'
+                        }
+                    ],
+                    payer: {
+                        name: nome,
+                        email: email,
+                        identification: {
+                            type: 'CPF',
+                            number: String(cpf).replace(/\D/g, '')
+                        }
+                    },
+                    payment_methods: {
+                        installments: 12
+                    }
+                })
             });
+
+            const data = await mpResponse.json();
+
+            if (!mpResponse.ok) {
+                return res.status(400).json({ sucesso: false, erro: data.message || 'Erro no Checkout MP' });
+            }
 
             return res.status(200).json({
                 sucesso: true,
-                init_point: prefResponse.body.init_point
+                init_point: data.init_point
             });
-        } else {
-            // PIX ou Boleto Bancário
-            const payment_data = {
-                transaction_amount: Number(total),
-                description: 'Compra iPhones Baratos',
-                payment_method_id: metodo === 'boleto' ? 'bolbradesco' : 'pix',
-                payer: {
-                    email: email,
-                    first_name: nome,
-                    identification: {
-                        type: 'CPF',
-                        number: String(cpf).replace(/\D/g, '')
-                    }
-                }
-            };
 
-            const response = await mercadopago.payment.create(payment_data, {
-                access_token: ACCESS_TOKEN
+        } else {
+            // Chamada direta à API do Mercado Pago para Pagamento PIX/Boleto
+            const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'X-Idempotency-Key': `${Date.now()}-${Math.random()}`
+                },
+                body: JSON.stringify({
+                    transaction_amount: Number(total),
+                    description: 'Compra iPhones Baratos',
+                    payment_method_id: metodo === 'boleto' ? 'bolbradesco' : 'pix',
+                    payer: {
+                        email: email,
+                        first_name: nome,
+                        identification: {
+                            type: 'CPF',
+                            number: String(cpf).replace(/\D/g, '')
+                        }
+                    }
+                })
             });
-            
-            const payment = response.body;
+
+            const payment = await mpResponse.json();
+
+            if (!mpResponse.ok) {
+                return res.status(400).json({ sucesso: false, erro: payment.message || payment.cause?.[0]?.description || 'Erro ao criar pagamento' });
+            }
 
             return res.status(200).json({
                 sucesso: true,
@@ -89,10 +100,6 @@ module.exports = async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Erro Mercado Pago:', error);
-        return res.status(500).json({ 
-            sucesso: false, 
-            erro: error.message || 'Erro ao processar pagamento com Mercado Pago.' 
-        });
+        return res.status(500).json({ sucesso: false, erro: error.message });
     }
 };
