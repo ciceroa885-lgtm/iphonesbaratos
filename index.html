@@ -56,7 +56,7 @@
         </nav>
     </header>
 
-    <!-- BANNER VÍDEO HERO -->
+    <!-- BANNER HERO -->
     <section class="relative bg-black w-full overflow-hidden">
         <video autoplay muted loop playsinline class="hero-video w-full">
             <source src="assets/video_hero.mp4" type="video/mp4">
@@ -69,7 +69,7 @@
         </div>
     </section>
 
-    <!-- INFORMAÇÕES DE CONFIANÇA -->
+    <!-- CONFIANÇA -->
     <section class="bg-white border-b border-gray-200 py-6">
         <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div class="p-3">
@@ -141,7 +141,7 @@
         </div>
     </footer>
 
-    <!-- CARRINHO -->
+    <!-- MODAL CARRINHO -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
@@ -174,12 +174,17 @@
                             <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
                         </div>
 
+                        <!-- FORMAS DE PAGAMENTO INCLUINDO CARTÃO EM ATÉ 12X -->
                         <div class="space-y-2 pt-2 border-t">
                             <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="grid grid-cols-3 gap-2 text-xs">
                                 <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
                                     <input type="radio" name="payMethod" value="pix" checked class="mb-1">
                                     <span class="font-semibold text-slate-800"><i class="fa-brands fa-pix text-green-500"></i> PIX</span>
+                                </label>
+                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
+                                    <input type="radio" name="payMethod" value="card" class="mb-1">
+                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-credit-card text-blue-500"></i> Cartão 12x</span>
                                 </label>
                                 <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
                                     <input type="radio" name="payMethod" value="boleto" class="mb-1">
@@ -189,7 +194,7 @@
                         </div>
 
                         <button id="btnSubmit" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
-                            Finalizar Compra / Gerar Pagamento
+                            Finalizar Compra / Ir para Pagamento
                         </button>
                     </form>
                 </div>
@@ -365,18 +370,25 @@
                                 </a>
                             </div>
                         `;
+                    } else if (payMethod === 'card') {
+                        // Redirecionamento seguro para Checkout do Mercado Pago em até 12x
+                        if (data.init_point) {
+                            window.location.href = data.init_point;
+                        } else {
+                            alert('Erro ao redirecionar para o Checkout de Cartão.');
+                        }
                     }
                     cart = [];
                     updateCartUI();
                 } else {
                     alert('Erro ao gerar pagamento: ' + (data.erro || 'Tente novamente.'));
                     btnSubmit.disabled = false;
-                    btnSubmit.innerText = 'Finalizar Compra / Gerar Pagamento';
+                    btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
                 }
             } catch (err) {
                 alert('Ocorreu um erro ao conectar com a API da Vercel.');
                 btnSubmit.disabled = false;
-                btnSubmit.innerText = 'Finalizar Compra / Gerar Pagamento';
+                btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
             }
         }
 
