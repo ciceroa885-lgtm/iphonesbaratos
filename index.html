@@ -523,15 +523,39 @@
                     </div>
                 `;
             } else if (payMethod === 'boleto') {
+                const boletoCode = `23793.38128 60007.827136 12000.633303 1 9600000${total.toFixed(0)}`;
                 container.innerHTML = `
-                    <div class="text-center py-6 px-4 flex flex-col justify-between h-full">
+                    <div class="text-center py-4 px-2 flex flex-col justify-between h-full">
                         <div>
-                            <div class="w-12 h-12 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <div class="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
                                 <i class="fa-solid fa-barcode text-xl"></i>
                             </div>
                             <h3 class="text-lg font-bold text-slate-900 mb-1">Boleto Gerado!</h3>
-                            <p class="text-xs text-gray-600 mb-4">Vencimento em 3 dias úteis. Comprovante enviado para o e-mail cadastrado.</p>
+                            <p class="text-xs text-gray-600 mb-3">Vencimento em 3 dias úteis. Comprovante registrado para <strong>${name}</strong>.</p>
+
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Total do Boleto:</div>
+                                <div class="text-lg font-extrabold text-slate-900 mb-3">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+
+                                <label class="text-[11px] font-semibold text-gray-700 block mb-1">Linha Digitável do Boleto:</label>
+                                <input type="text" readonly id="boletoCodeInput" value="${boletoCode}" class="w-full text-[11px] p-2 border rounded bg-white text-center font-mono mb-2">
+                                
+                                <div class="space-y-2">
+                                    <button type="button" onclick="copiarBoletoCode()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded transition flex items-center justify-center gap-2">
+                                        <i class="fa-regular fa-copy"></i> Copiar Código de Barras
+                                    </button>
+                                    <button type="button" onclick="gerarBoletoPDF('${name}', '${cpf}', '${total.toFixed(2)}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded transition flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-file-pdf"></i> Baixar / Imprimir Boleto
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-[11px] text-gray-500 mb-3">
+                                Envio cadastrado para:<br>
+                                <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
+                            </p>
                         </div>
+
                         <button type="button" onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition cursor-pointer">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
                         </button>
@@ -547,6 +571,48 @@
                 document.execCommand('copy');
                 alert('Chave PIX copiada com sucesso!');
             }
+        }
+
+        function copiarBoletoCode() {
+            const input = document.getElementById('boletoCodeInput');
+            if (input) {
+                input.select();
+                document.execCommand('copy');
+                alert('Código de barras copiado com sucesso!');
+            }
+        }
+
+        function gerarBoletoPDF(nome, cpf, valor) {
+            const novaJanela = window.open('', '_blank');
+            novaJanela.document.write(`
+                <html>
+                <head>
+                    <title>Boleto Bancário - iPhones Baratos</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                        .boleto-box { border: 2px solid #000; padding: 20px; max-width: 600px; margin: 0 auto; }
+                        .header { text-align: center; border-bottom: 2px solid #000; pb-10px; margin-bottom: 15px; }
+                        .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+                        .barcode { text-align: center; margin-top: 25px; font-family: monospace; font-size: 16px; font-weight: bold; background: #eee; padding: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="boleto-box">
+                        <div class="header">
+                            <h2>IPHONES BARATOS - BOLETO BANCÁRIO</h2>
+                        </div>
+                        <div class="row"><strong>Pagador:</strong> <span>${nome}</span></div>
+                        <div class="row"><strong>CPF:</strong> <span>${cpf}</span></div>
+                        <div class="row"><strong>Valor Total:</strong> <span>R$ ${parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>
+                        <div class="row"><strong>Vencimento:</strong> <span>3 Dias Úteis</span></div>
+                        <div class="barcode">
+                            23793.38128 60007.827136 12000.633303 1 9600000${parseFloat(valor).toFixed(0)}
+                        </div>
+                    </div>
+                    <script>window.print();<\/script>
+                </body>
+                </html>
+            `);
         }
 
         renderProducts(products);
