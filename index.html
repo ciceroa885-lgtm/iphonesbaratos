@@ -32,10 +32,10 @@
     <header class="sticky top-0 z-40 apple-glass border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <!-- LOGO -->
+                <!-- LOGO UNIFICADA SEM DESTAQUE AZUL -->
                 <a href="#" class="flex items-center gap-2 group">
                     <i class="fa-brands fa-apple text-2xl group-hover:scale-105 transition-transform"></i>
-                    <span class="font-bold text-lg tracking-tight text-slate-900">IPHONESBARATOS<span class="text-blue-600">.COM.BR</span></span>
+                    <span class="font-bold text-lg tracking-tight text-slate-900">IPHONESBARATOS.COM.BR</span>
                 </a>
 
                 <!-- BUSCA -->
@@ -163,12 +163,15 @@
                 <button onclick="toggleCart()" class="text-gray-400 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div id="cartContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
-                <div id="cartItems" class="space-y-4">
-                    <!-- Itens do Carrinho -->
+            <div id="cartContainer" class="flex-1 overflow-y-auto p-4 flex flex-col justify-between">
+                <div>
+                    <!-- LISTA DE ITENS DO CARRINHO (COM BOTAO DE EXCLUIR) -->
+                    <div id="cartItems" class="space-y-3 mb-4">
+                        <!-- Itens do Carrinho -->
+                    </div>
                 </div>
 
-                <div class="p-4 border-t bg-gray-50 space-y-3 mt-auto">
+                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-3 mt-auto rounded-xl">
                     <div id="cartSummary" class="space-y-1 text-sm">
                         <div class="flex justify-between font-bold text-base text-slate-900">
                             <span>Total:</span>
@@ -332,15 +335,22 @@
         function updateCart() {
             document.getElementById('cartCount').innerText = cart.length;
             const container = document.getElementById('cartItems');
-            container.innerHTML = cart.map((item, idx) => `
-                <div class="flex items-center justify-between border-b pb-2">
-                    <div>
-                        <h5 class="font-bold text-xs">${item.name}</h5>
-                        <p class="text-xs text-blue-600 font-semibold">R$ ${item.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+            
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-gray-500 py-6">Seu carrinho está vazio.</p>`;
+            } else {
+                container.innerHTML = cart.map((item, idx) => `
+                    <div class="flex items-center justify-between border-b pb-2 bg-gray-50 p-2 rounded-lg">
+                        <div class="flex-1 pr-2">
+                            <h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
+                            <p class="text-xs text-blue-600 font-semibold">R$ ${item.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-700 p-1 text-sm transition" title="Remover produto">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
-                    <button onclick="removeFromCart(${idx})" class="text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
+                `).join('');
+            }
 
             const total = cart.reduce((sum, item) => sum + item.price, 0);
             document.getElementById('cartTotal').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
@@ -348,6 +358,82 @@
 
         function removeFromCart(idx) {
             cart.splice(idx, 1);
+            updateCart();
+        }
+
+        function renderCartView() {
+            updateCart();
+            document.getElementById('cartContainer').innerHTML = `
+                <div>
+                    <div id="cartItems" class="space-y-3 mb-4"></div>
+                </div>
+                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-3 mt-auto rounded-xl">
+                    <div id="cartSummary" class="space-y-1 text-sm">
+                        <div class="flex justify-between font-bold text-base text-slate-900">
+                            <span>Total:</span>
+                            <span id="cartTotal">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <form id="checkoutForm" onsubmit="event.preventDefault(); processOrder();" class="space-y-3">
+                        <div class="space-y-2 pt-2 border-t">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente para Envio</h4>
+                            <input type="text" id="custName" required placeholder="Nome Completo" autocomplete="name" class="w-full text-xs p-2 border rounded">
+                            <input type="text" id="custCPF" required placeholder="CPF (obrigatório para pagamento)" autocomplete="off" class="w-full text-xs p-2 border rounded">
+                            <input type="email" id="custEmail" required placeholder="Seu E-mail" autocomplete="email" class="w-full text-xs p-2 border rounded">
+                            <input type="tel" id="custPhone" required placeholder="WhatsApp / Telefone" autocomplete="tel" class="w-full text-xs p-2 border rounded">
+                            <input type="text" id="custCEP" required placeholder="CEP de Entrega" autocomplete="postal-code" class="w-full text-xs p-2 border rounded">
+                            <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
+                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
+                                    <input type="radio" name="payMethod" value="pix" checked onclick="togglePaymentFields('pix')" class="mb-1">
+                                    <span class="font-semibold text-slate-800"><i class="fa-brands fa-pix text-green-500"></i> PIX</span>
+                                </label>
+                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
+                                    <input type="radio" name="payMethod" value="card" onclick="togglePaymentFields('card')" class="mb-1">
+                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-credit-card text-blue-500"></i> Cartão</span>
+                                </label>
+                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
+                                    <input type="radio" name="payMethod" value="boleto" onclick="togglePaymentFields('boleto')" class="mb-1">
+                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-barcode text-gray-700"></i> Boleto</span>
+                                </label>
+                            </div>
+
+                            <div id="cardFields" class="hidden space-y-2 pt-2">
+                                <p class="text-[11px] text-gray-500">Selecione o parcelamento desejado:</p>
+                                <input type="text" placeholder="Número do Cartão" autocomplete="cc-number" class="w-full text-xs p-2 border rounded">
+                                <div class="flex gap-2">
+                                    <input type="text" placeholder="MM/AA" autocomplete="cc-exp" class="w-1/2 text-xs p-2 border rounded">
+                                    <input type="text" placeholder="CVV" autocomplete="cc-csc" class="w-1/2 text-xs p-2 border rounded">
+                                </div>
+                                <input type="text" placeholder="Nome impresso no cartão" autocomplete="cc-name" class="w-full text-xs p-2 border rounded">
+                                <select id="cardInstallments" class="w-full text-xs p-2 border rounded text-gray-700">
+                                    <option value="1">1x sem juros</option>
+                                    <option value="2">2x com juros</option>
+                                    <option value="3">3x com juros</option>
+                                    <option value="4">4x com juros</option>
+                                    <option value="5">5x com juros</option>
+                                    <option value="6">6x com juros</option>
+                                    <option value="7">7x com juros</option>
+                                    <option value="8">8x com juros</option>
+                                    <option value="9">9x com juros</option>
+                                    <option value="10">10x com juros</option>
+                                    <option value="11">11x com juros</option>
+                                    <option value="12">12x com juros</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
+                            Finalizar Compra / Ir para Pagamento
+                        </button>
+                    </form>
+                </div>
+            `;
             updateCart();
         }
 
@@ -367,8 +453,6 @@
         function processOrder() {
             const name = document.getElementById('custName').value;
             const cpf = document.getElementById('custCPF').value;
-            const email = document.getElementById('custEmail').value;
-            const phone = document.getElementById('custPhone').value;
             const address = document.getElementById('custAddress').value;
             const payMethod = document.querySelector('input[name="payMethod"]:checked').value;
 
@@ -379,74 +463,77 @@
 
             const total = cart.reduce((sum, item) => sum + item.price, 0);
             const container = document.getElementById('cartContainer');
-            const itensTexto = cart.map(i => i.name).join(', ');
-
-            // URL para enviar o resumo do pedido ao WhatsApp da loja
-            const msgWhats = encodeURIComponent(`Olá! Fiz um pedido no site iphonesbaratos.com.br:\n- Cliente: ${name}\n- CPF: ${cpf}\n- Itens: ${itensTexto}\n- Total: R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}\n- Endereço: ${address}`);
-            const linkWhats = `https://wa.me/5562999999999?text=${msgWhats}`;
 
             if (payMethod === 'pix') {
                 const pixKey = `00020126580014br.gov.bcb.pix0114000000000000005204000053039865405${total.toFixed(2)}5802BR5925IPHONESBARATOS6008GOIANIA62070503***6304`;
                 const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixKey)}`;
 
                 container.innerHTML = `
-                    <div class="text-center py-6 px-4">
-                        <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fa-solid fa-check text-xl"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Pedido Registrado!</h3>
-                        <p class="text-xs text-gray-600 mb-4">Obrigado, <strong>${name}</strong>. Efetue o pagamento via PIX para liberar o envio.</p>
+                    <div class="text-center py-6 px-4 flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-check text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Pedido Registrado!</h3>
+                            <p class="text-xs text-gray-600 mb-4">Obrigado, <strong>${name}</strong>. Efetue o pagamento via PIX para liberar o envio.</p>
 
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-center">
-                            <div class="text-xs text-gray-500 mb-1">Total a pagar:</div>
-                            <div class="text-lg font-extrabold text-slate-900 mb-3">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                            
-                            <!-- QR CODE PIX -->
-                            <div class="bg-white p-3 border inline-block rounded-lg shadow-sm mb-3">
-                                <img src="${qrCodeUrl}" alt="QR Code PIX" class="w-40 h-40 mx-auto">
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 text-center">
+                                <div class="text-xs text-gray-500 mb-1">Total a pagar:</div>
+                                <div class="text-lg font-extrabold text-slate-900 mb-3">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                                
+                                <!-- QR CODE PIX -->
+                                <div class="bg-white p-3 border inline-block rounded-lg shadow-sm mb-3">
+                                    <img src="${qrCodeUrl}" alt="QR Code PIX" class="w-40 h-40 mx-auto">
+                                </div>
+
+                                <label class="text-[11px] font-semibold text-gray-700 block mb-1">Chave Copia e Cola PIX:</label>
+                                <input type="text" readonly id="pixCode" value="${pixKey}" class="w-full text-xs p-2 border rounded bg-white text-center font-mono mb-2">
+                                <button onclick="copiarChavePix()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2">
+                                    <i class="fa-regular fa-copy"></i> Copiar Chave PIX
+                                </button>
                             </div>
 
-                            <label class="text-[11px] font-semibold text-gray-700 block mb-1">Ou pague com a Chave Copia e Cola PIX:</label>
-                            <input type="text" readonly id="pixCode" value="${pixKey}" class="w-full text-xs p-2 border rounded bg-white text-center font-mono mb-2">
-                            <button onclick="copiarChavePix()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2 mb-2">
-                                <i class="fa-regular fa-copy"></i> Copiar Chave PIX
-                            </button>
-                            <a href="${linkWhats}" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2 inline-block">
-                                <i class="fa-brands fa-whatsapp"></i> Enviar Comprovante no WhatsApp
-                            </a>
+                            <p class="text-[11px] text-gray-500 mb-4">
+                                Envio cadastrado para:<br>
+                                <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
+                            </p>
                         </div>
 
-                        <p class="text-[11px] text-gray-500">
-                            Após confirmação, o envio será feito para:<br>
-                            <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
-                        </p>
+                        <!-- BOTAO PARA ALTERAR OU EXCLUIR ITENS SE DESISTIR -->
+                        <button onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
+                        </button>
                     </div>
                 `;
             } else if (payMethod === 'card') {
                 const parcels = document.getElementById('cardInstallments').value;
                 container.innerHTML = `
-                    <div class="text-center py-6 px-4">
-                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fa-solid fa-credit-card text-xl"></i>
+                    <div class="text-center py-6 px-4 flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-credit-card text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Processando Cartão</h3>
+                            <p class="text-xs text-gray-600 mb-3">Pagamento em ${parcels}x sendo processado pela operadora.</p>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Processando Cartão</h3>
-                        <p class="text-xs text-gray-600 mb-3">Pagamento em ${parcels}x sendo processado pela operadora.</p>
-                        <a href="${linkWhats}" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2 inline-block">
-                            <i class="fa-brands fa-whatsapp"></i> Confirmar Pedido no WhatsApp
-                        </a>
+                        <button onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
+                        </button>
                     </div>
                 `;
             } else if (payMethod === 'boleto') {
                 container.innerHTML = `
-                    <div class="text-center py-6 px-4">
-                        <div class="w-12 h-12 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fa-solid fa-barcode text-xl"></i>
+                    <div class="text-center py-6 px-4 flex flex-col justify-between h-full">
+                        <div>
+                            <div class="w-12 h-12 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-barcode text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Boleto Gerado!</h3>
+                            <p class="text-xs text-gray-600 mb-4">Vencimento em 3 dias úteis. Comprovante enviado para o e-mail cadastrado.</p>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Boleto Gerado!</h3>
-                        <p class="text-xs text-gray-600 mb-4">Vencimento em 3 dias úteis. Comprovante enviado para o e-mail cadastrado.</p>
-                        <a href="${linkWhats}" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-2.5 rounded transition flex items-center justify-center gap-2 inline-block">
-                            <i class="fa-brands fa-whatsapp"></i> Enviar Pedido no WhatsApp
-                        </a>
+                        <button onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition">
+                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
+                        </button>
                     </div>
                 `;
             }
