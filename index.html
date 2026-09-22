@@ -228,7 +228,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
+                        <button id="btnSubmit" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
                             Finalizar Compra / Ir para Pagamento
                         </button>
                     </form>
@@ -239,46 +239,28 @@
 
     <!-- SCRIPT DO CATÁLOGO E MERCADO PAGO -->
     <script>
-        // INICIALIZAÇÃO MERCADO PAGO
-        const mp = new MercadoPago('APP_USR-f0da0c4b-16d8-4afa-960a-45e327279ef1', {
-            locale: 'pt-BR'
-        });
-
         const products = [
-            // IPHONE 18 PRO MAX / PRO
             { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
             { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 9885, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Titanio Branco White Titanium.png" },
-            
-            // IPHONE 17 PRO
             { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Titanio Azul.png" },
             { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Black.png" },
             { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7255, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 17 pro branco.png" },
-
-            // IPHONE 16 SERIES
             { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 pro verde azul.png" },
             { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 16 pro rosa.png" },
             { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus ultramarinho.png" },
             { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus Preto.png" },
-
-            // IPHONE 15 SERIES
             { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 pro Verde.png" },
             { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Azul.png" },
             { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Rosa.jpg" },
             { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 plus amarelo.jpg" },
-
-            // IPHONE 14 SERIES
             { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Vermelho.jpg" },
             { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Azul.jpg" },
             { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/iphone14-meia-noite (1).jpg" },
-
-            // IPHONE 13 SERIES
             { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/iphone13-azul (1).png" },
             { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Rosa.png" },
             { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 verde.png" },
             { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Estelar.png" },
             { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 meia noite.png" },
-
-            // IPHONE 11 SERIES
             { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-verde (1).png" },
             { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-Roxo (1).png" },
             { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-branco (1).png" },
@@ -322,7 +304,7 @@
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
             cart.push(prod);
-            renderCartView();
+            updateCartUI();
             toggleCart();
         }
 
@@ -359,82 +341,6 @@
             updateCartUI();
         }
 
-        function renderCartView() {
-            const container = document.getElementById('cartContainer');
-            container.innerHTML = `
-                <div>
-                    <div id="cartItems" class="space-y-3 mb-4"></div>
-                </div>
-                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-3 mt-auto rounded-xl">
-                    <div id="cartSummary" class="space-y-1 text-sm">
-                        <div class="flex justify-between font-bold text-base text-slate-900">
-                            <span>Total:</span>
-                            <span id="cartTotal">R$ 0,00</span>
-                        </div>
-                    </div>
-
-                    <form id="checkoutForm" onsubmit="event.preventDefault(); processOrder();" class="space-y-3">
-                        <div class="space-y-2 pt-2 border-t">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente para Envio</h4>
-                            <input type="text" id="custName" required placeholder="Nome Completo" autocomplete="name" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custCPF" required placeholder="CPF (obrigatório para pagamento)" autocomplete="off" class="w-full text-xs p-2 border rounded">
-                            <input type="email" id="custEmail" required placeholder="Seu E-mail" autocomplete="email" class="w-full text-xs p-2 border rounded">
-                            <input type="tel" id="custPhone" required placeholder="WhatsApp / Telefone" autocomplete="tel" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custCEP" required placeholder="CEP de Entrega" autocomplete="postal-code" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
-                        </div>
-
-                        <div class="space-y-2 pt-2 border-t">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
-                            <div class="grid grid-cols-3 gap-2 text-xs">
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="pix" checked onclick="togglePaymentFields('pix')" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-brands fa-pix text-green-500"></i> PIX</span>
-                                </label>
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="card" onclick="togglePaymentFields('card')" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-credit-card text-blue-500"></i> Cartão</span>
-                                </label>
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="boleto" onclick="togglePaymentFields('boleto')" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-barcode text-gray-700"></i> Boleto</span>
-                                </label>
-                            </div>
-
-                            <div id="cardFields" class="hidden space-y-2 pt-2">
-                                <p class="text-[11px] text-gray-500">Selecione o parcelamento desejado:</p>
-                                <input type="text" placeholder="Número do Cartão" autocomplete="cc-number" class="w-full text-xs p-2 border rounded">
-                                <div class="flex gap-2">
-                                    <input type="text" placeholder="MM/AA" autocomplete="cc-exp" class="w-1/2 text-xs p-2 border rounded">
-                                    <input type="text" placeholder="CVV" autocomplete="cc-csc" class="w-1/2 text-xs p-2 border rounded">
-                                </div>
-                                <input type="text" placeholder="Nome impresso no cartão" autocomplete="cc-name" class="w-full text-xs p-2 border rounded">
-                                <select id="cardInstallments" class="w-full text-xs p-2 border rounded text-gray-700">
-                                    <option value="1">1x sem juros</option>
-                                    <option value="2">2x com juros</option>
-                                    <option value="3">3x com juros</option>
-                                    <option value="4">4x com juros</option>
-                                    <option value="5">5x com juros</option>
-                                    <option value="6">6x com juros</option>
-                                    <option value="7">7x com juros</option>
-                                    <option value="8">8x com juros</option>
-                                    <option value="9">9x com juros</option>
-                                    <option value="10">10x com juros</option>
-                                    <option value="11">11x com juros</option>
-                                    <option value="12">12x com juros</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
-                            Finalizar Compra / Ir para Pagamento
-                        </button>
-                    </form>
-                </div>
-            `;
-            updateCartUI();
-        }
-
         function toggleCart() {
             document.getElementById('cartModal').classList.toggle('hidden');
         }
@@ -448,289 +354,84 @@
             }
         }
 
-        function processOrder() {
+        async function processOrder() {
             const name = document.getElementById('custName').value;
             const cpf = document.getElementById('custCPF').value;
-            const address = document.getElementById('custAddress').value;
+            const email = document.getElementById('custEmail').value;
             const payMethod = document.querySelector('input[name="payMethod"]:checked').value;
 
-            if (!name || !cpf || cart.length === 0) {
-                alert('Por favor, preencha seu Nome, CPF e adicione produtos ao carrinho.');
+            if (!name || !cpf || !email || cart.length === 0) {
+                alert('Por favor, preencha todos os seus dados e adicione produtos ao carrinho.');
                 return;
             }
 
             const total = cart.reduce((sum, item) => sum + item.price, 0);
             const container = document.getElementById('cartContainer');
+            const btnSubmit = document.getElementById('btnSubmit');
 
-            if (payMethod === 'pix') {
-                const pixKey = `00020126580014br.gov.bcb.pix0114000000000000005204000053039865405${total.toFixed(2)}5802BR5925IPHONESBARATOS6008GOIANIA62070503***6304`;
-                const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixKey)}`;
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = 'Gerando Pagamento...';
 
-                container.innerHTML = `
-                    <div class="text-center py-4 px-2 flex flex-col justify-between h-full">
-                        <div>
-                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <i class="fa-solid fa-check text-xl"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-1">Pedido Registrado!</h3>
-                            <p class="text-xs text-gray-600 mb-3">Obrigado, <strong>${name}</strong>. Efetue o pagamento via PIX para liberar o envio.</p>
+            try {
+                const response = await fetch('/api/pagamento', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome: name,
+                        cpf: cpf,
+                        email: email,
+                        total: total,
+                        metodo: payMethod
+                    })
+                });
 
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 text-center">
-                                <div class="text-xs text-gray-500 mb-1">Total a pagar:</div>
-                                <div class="text-lg font-extrabold text-slate-900 mb-2">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                                
-                                <div class="bg-white p-2 border inline-block rounded-lg shadow-sm mb-2">
-                                    <img src="${qrCodeUrl}" alt="QR Code PIX" class="w-36 h-36 mx-auto">
-                                </div>
+                const data = await response.json();
 
-                                <label class="text-[11px] font-semibold text-gray-700 block mb-1">Chave Copia e Cola PIX:</label>
-                                <input type="text" readonly id="pixCode" value="${pixKey}" class="w-full text-xs p-2 border rounded bg-white text-center font-mono mb-2">
-                                <button type="button" onclick="copiarChavePix()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded transition flex items-center justify-center gap-2">
-                                    <i class="fa-regular fa-copy"></i> Copiar Chave PIX
-                                </button>
-                            </div>
-
-                            <p class="text-[11px] text-gray-500 mb-3">
-                                Envio cadastrado para:<br>
-                                <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
-                            </p>
-                        </div>
-
-                        <button type="button" onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition cursor-pointer">
-                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
-                        </button>
-                    </div>
-                `;
-            } else if (payMethod === 'card') {
-                const parcels = document.getElementById('cardInstallments').value;
-                container.innerHTML = `
-                    <div class="text-center py-6 px-4 flex flex-col justify-between h-full">
-                        <div>
-                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <i class="fa-solid fa-credit-card text-xl"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-1">Processando Cartão</h3>
-                            <p class="text-xs text-gray-600 mb-3">Pagamento em ${parcels}x sendo processado pela operadora.</p>
-                        </div>
-                        <button type="button" onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition cursor-pointer">
-                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
-                        </button>
-                    </div>
-                `;
-            } else if (payMethod === 'boleto') {
-                const boletoCode = `03399.00000 00000.000000 00000.000000 1 9600000${total.toFixed(0)}`;
-                container.innerHTML = `
-                    <div class="text-center py-4 px-2 flex flex-col justify-between h-full">
-                        <div>
-                            <div class="w-12 h-12 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto mb-2">
-                                <i class="fa-solid fa-barcode text-xl"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-900 mb-1">Boleto Gerado!</h3>
-                            <p class="text-xs text-gray-600 mb-3">Vencimento em 3 dias úteis. Comprovante registrado para <strong>${name}</strong>.</p>
-
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3 text-center">
-                                <div class="text-xs text-gray-500 mb-1">Total do Boleto:</div>
-                                <div class="text-lg font-extrabold text-slate-900 mb-3">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-
-                                <label class="text-[11px] font-semibold text-gray-700 block mb-1">Linha Digitável do Boleto:</label>
-                                <input type="text" readonly id="boletoCodeInput" value="${boletoCode}" class="w-full text-[11px] p-2 border rounded bg-white text-center font-mono mb-2">
-                                
-                                <div class="space-y-2">
-                                    <button type="button" onclick="copiarBoletoCode()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded transition flex items-center justify-center gap-2">
-                                        <i class="fa-regular fa-copy"></i> Copiar Código de Barras
-                                    </button>
-                                    <button type="button" onclick="gerarBoletoPDF('${name}', '${cpf}', '${total.toFixed(2)}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded transition flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-file-pdf"></i> Baixar / Imprimir Boleto
+                if (data.sucesso) {
+                    if (payMethod === 'pix') {
+                        container.innerHTML = `
+                            <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
+                                <h4 class="font-bold text-base text-slate-900">Pagamento via PIX Gerado!</h4>
+                                <p class="text-xs text-gray-500">Escaneie o QR Code abaixo no aplicativo do seu banco:</p>
+                                <img src="data:image/jpeg;base64,${data.qr_code_base64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-lg shadow-md">
+                                <div class="w-full">
+                                    <p class="text-[11px] text-gray-500 mb-1">Ou copie a chave abaixo:</p>
+                                    <textarea readonly id="pixCode" class="w-full text-[10px] p-2 border rounded bg-gray-50 h-16 select-all">${data.qr_code_pix}</textarea>
+                                    <button onclick="navigator.clipboard.writeText(document.getElementById('pixCode').value); alert('Código PIX copiado!');" class="mt-2 w-full bg-green-600 text-white font-bold py-2 rounded text-xs">
+                                        <i class="fa-regular fa-copy"></i> Copiar Código PIX
                                     </button>
                                 </div>
                             </div>
-
-                            <p class="text-[11px] text-gray-500 mb-3">
-                                Envio cadastrado para:<br>
-                                <strong class="text-gray-700">${address || 'Endereço informado'}</strong>
-                            </p>
-                        </div>
-
-                        <button type="button" onclick="renderCartView()" class="w-full border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold text-xs py-2.5 rounded transition cursor-pointer">
-                            <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Carrinho / Alterar Itens
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function copiarChavePix() {
-            const input = document.getElementById('pixCode');
-            if (input) {
-                input.select();
-                document.execCommand('copy');
-                alert('Chave PIX copiada com sucesso!');
-            }
-        }
-
-        function copiarBoletoCode() {
-            const input = document.getElementById('boletoCodeInput');
-            if (input) {
-                input.select();
-                document.execCommand('copy');
-                alert('Código de barras copiado com sucesso!');
-            }
-        }
-
-        function gerarBoletoPDF(nome, cpf, valor) {
-            const novaJanela = window.open('', '_blank');
-            const dataAtual = new Date();
-            const dataVencimento = new Date();
-            dataVencimento.setDate(dataAtual.getDate() + 3);
-
-            const formatData = (d) => d.toLocaleDateString('pt-BR');
-            const valorFormatado = parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-            
-            const pixCodeBoleto = `00020126580014br.gov.bcb.pix0114000000000000005204000053039865405${parseFloat(valor).toFixed(2)}5802BR5925IPHONESBARATOS6008GOIANIA62070503***6304`;
-            const qrCodeUrlBoleto = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(pixCodeBoleto)}`;
-            const numDocumento = `IB-${Math.floor(100000 + Math.random() * 900000)}`;
-            const linhaDigitavel = `03399.00000 00000.000000 00000.000000 1 9600000${parseFloat(valor).toFixed(0)}`;
-
-            const boletoHTML = `
-                <!DOCTYPE html>
-                <html lang="pt-BR">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Boleto Bancário - iPhones Baratos</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
-                    <style>
-                        body { font-family: Arial, sans-serif; font-size: 10px; color: #000; margin: 0; padding: 20px; background: #fff; }
-                        .boleto-container { width: 720px; margin: 0 auto; }
-                        
-                        /* SEÇÃO RECIBO DO PAGADOR */
-                        .recibo-pagador { border-bottom: 1px dashed #000; padding-bottom: 15px; margin-bottom: 15px; }
-                        
-                        /* CABEÇALHO PADRÃO */
-                        .bank-line { display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 4px; }
-                        .bank-logo { font-size: 15px; font-weight: bold; width: 170px; text-transform: uppercase; }
-                        .bank-code { font-size: 16px; font-weight: bold; padding: 0 12px; border-left: 2px solid #000; border-right: 2px solid #000; }
-                        .linha-digitavel { font-size: 12px; font-weight: bold; flex-1; text-align: right; font-family: monospace; }
-                        
-                        /* TABELAS */
-                        table.boleto-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-                        table.boleto-table td { border: 1px solid #000; padding: 3px 5px; vertical-align: top; }
-                        .label { font-size: 8px; text-transform: uppercase; color: #333; display: block; margin-bottom: 1px; }
-                        .value { font-size: 10px; font-weight: bold; }
-                        .value-big { font-size: 12px; font-weight: bold; }
-
-                        /* BLOCO DE PIX / QR CODE NA FICHA DE COMPENSAÇÃO */
-                        .instrucoes-container { display: flex; gap: 8px; }
-                        .instrucoes-texto { flex: 1; }
-                        .qr-pix-box { width: 115px; text-align: center; border-left: 1px solid #000; padding-left: 8px; }
-                        .qr-pix-box img { width: 90px; height: 90px; display: block; margin: 0 auto 2px; }
-                        .qr-pix-box span { font-size: 8px; font-weight: bold; text-transform: uppercase; display: block; }
-
-                        /* CÓDIGO DE BARRAS GRÁFICO E LINHA DIGITÁVEL ACIMA */
-                        .barcode-section { margin-top: 10px; text-align: center; }
-                        .barcode-numbers { font-family: monospace; font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
-                        .barcode-render { font-family: 'Libre Barcode 128', cursive; font-size: 58px; line-height: 1; display: inline-block; }
-                        
-                        .btn-print { display: block; width: 720px; margin: 0 auto 20px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; }
-                        @media print { .btn-print { display: none; } }
-                    </style>
-                </head>
-                <body>
-                    <button class="btn-print" onclick="window.print()">Imprimir / Salvar em PDF</button>
-                    
-                    <div class="boleto-container">
-                        <!-- 1. RECIBO DO PAGADOR (PARTE SUPERIOR) -->
-                        <div class="recibo-pagador">
-                            <div class="bank-line">
-                                <div class="bank-logo">MERCADO PAGO</div>
-                                <div class="bank-code">033-7</div>
-                                <div class="linha-digitavel">${linhaDigitavel}</div>
+                        `;
+                    } else if (payMethod === 'boleto') {
+                        container.innerHTML = `
+                            <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
+                                <h4 class="font-bold text-base text-slate-900">Boleto Gerado com Sucesso!</h4>
+                                <p class="text-xs text-gray-500">Clique no botão abaixo para abrir seu boleto:</p>
+                                <a href="${data.pdf_url}" target="_blank" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-xs block">
+                                    <i class="fa-solid fa-file-pdf"></i> Visualizar / Imprimir Boleto
+                                </a>
                             </div>
-                            <table class="boleto-table">
-                                <tr>
-                                    <td style="width: 50%;"><span class="label">Beneficiário / CNPJ</span><span class="value">IPHONES BARATOS - CNPJ: 28.142.765/0001-85</span></td>
-                                    <td><span class="label">Agência/Código Beneficiário</span><span class="value">0001 / 28142765-8</span></td>
-                                    <td><span class="label">Vencimento</span><span class="value-big">${formatData(dataVencimento)}</span></td>
-                                </tr>
-                                <tr>
-                                    <td><span class="label">Pagador</span><span class="value">${nome} - CPF: ${cpf}</span></td>
-                                    <td><span class="label">Nº Documento</span><span class="value">${numDocumento}</span></td>
-                                    <td><span class="label">Valor do Documento</span><span class="value-big">R$ ${valorFormatado}</span></td>
-                                </tr>
-                            </table>
-                            <div style="text-align: right; font-size: 8px; font-weight: bold; margin-top: 2px;">Recibo do Pagador</div>
-                        </div>
-
-                        <!-- 2. FICHA DE COMPENSAÇÃO (PARTE INFERIOR) -->
-                        <div class="bank-line">
-                            <div class="bank-logo">MERCADO PAGO</div>
-                            <div class="bank-code">033-7</div>
-                            <div class="linha-digitavel">${linhaDigitavel}</div>
-                        </div>
-
-                        <table class="boleto-table">
-                            <tr>
-                                <td colspan="3"><span class="label">Local de Pagamento</span><span class="value">Pagável em qualquer banco ou casa lotérica até o vencimento</span></td>
-                                <td style="width: 170px;"><span class="label">Vencimento</span><span class="value-big">${formatData(dataVencimento)}</span></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3"><span class="label">Beneficiário / CNPJ</span><span class="value">IPHONES BARATOS - CNPJ: 28.142.765/0001-85</span></td>
-                                <td><span class="label">Agência/Código Beneficiário</span><span class="value">0001 / 28142765-8</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="label">Data do Documento</span><span class="value">${formatData(dataAtual)}</span></td>
-                                <td><span class="label">Nº Documento</span><span class="value">${numDocumento}</span></td>
-                                <td><span class="label">Espécie Doc.</span><span class="value">DM</span></td>
-                                <td><span class="label">Valor do Documento</span><span class="value-big">R$ ${valorFormatado}</span></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3">
-                                    <div class="instrucoes-container">
-                                        <div class="instrucoes-texto">
-                                            <span class="label">Instruções de Responsabilidade do Beneficiário</span>
-                                            <div class="value" style="font-weight: normal; margin-top: 4px; line-height: 1.3;">
-                                                • Não receber após o vencimento.<br>
-                                                • Envio liberado automaticamente após compensação bancária.<br>
-                                                • Dúvidas referente ao pedido acesse iphonesbaratos.com.br.<br>
-                                                • Ou pague instantaneamente utilizando o QR Code PIX ao lado.
-                                            </div>
-                                        </div>
-                                        <div class="qr-pix-box">
-                                            <span>Pague com PIX</span>
-                                            <img src="${qrCodeUrlBoleto}" alt="QR Code PIX Boleto">
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="label">(-) Desconto / Abatimento</span><span class="value" style="height: 15px; display: block;"></span>
-                                    <span class="label">(=) Valor Cobrado</span><span class="value-big">R$ ${valorFormatado}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colspan="4">
-                                    <span class="label">Pagador / CPF</span>
-                                    <span class="value">${nome} - CPF: ${cpf}</span>
-                                </td>
-                            </tr>
-                        </table>
-
-                        <!-- CÓDIGO DE BARRAS COM NÚMERO EXATAMENTE ACIMA DAS BARRAS -->
-                        <div class="barcode-section">
-                            <div class="barcode-numbers">${linhaDigitavel}</div>
-                            <div class="barcode-render">*0339900000000000000000000000000019600000${parseFloat(valor).toFixed(0)}*</div>
-                        </div>
-
-                        <div style="text-align: right; font-size: 8px; font-weight: bold; margin-top: 2px;">Ficha de Compensação - Autenticação Mecânica</div>
-                    </div>
-                </body>
-                </html>
-            `;
-            novaJanela.document.write(boletoHTML);
-            novaJanela.document.close();
-            novaJanela.focus();
+                        `;
+                    } else {
+                        alert('Pagamento processado com sucesso!');
+                        cart = [];
+                        toggleCart();
+                    }
+                } else {
+                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Tente novamente.'));
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+                }
+            } catch (err) {
+                alert('Ocorreu um erro de conexão com a API de pagamento.');
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+            }
         }
 
+        // Renderiza os produtos ao carregar
         renderProducts(products);
-        renderCartView();
     </script>
 </body>
 </html>
