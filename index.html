@@ -69,7 +69,7 @@
         </div>
     </section>
 
-    <!-- CONFIANÇA -->
+    <!-- DIFERENCIAIS -->
     <section class="bg-white border-b border-gray-200 py-6">
         <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div class="p-3">
@@ -85,7 +85,7 @@
             <div class="p-3">
                 <i class="fa-solid fa-credit-card text-2xl text-blue-600 mb-2"></i>
                 <h4 class="font-bold text-sm">Até 12x no Cartão</h4>
-                <p class="text-xs text-gray-500">Aceitamos Cartão, Débito e PIX</p>
+                <p class="text-xs text-gray-500">Aceitamos Cartão, PIX e Boleto</p>
             </div>
         </div>
     </section>
@@ -174,7 +174,6 @@
                             <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
                         </div>
 
-                        <!-- FORMAS DE PAGAMENTO INCLUINDO CARTÃO EM ATÉ 12X -->
                         <div class="space-y-2 pt-2 border-t">
                             <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
                             <div class="grid grid-cols-3 gap-2 text-xs">
@@ -202,7 +201,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT -->
+    <!-- SCRIPT DA LOJA -->
     <script>
         const products = [
             { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
@@ -371,7 +370,6 @@
                             </div>
                         `;
                     } else if (payMethod === 'card') {
-                        // Redirecionamento seguro para Checkout do Mercado Pago em até 12x
                         if (data.init_point) {
                             window.location.href = data.init_point;
                         } else {
