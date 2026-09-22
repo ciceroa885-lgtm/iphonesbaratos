@@ -3,7 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Metadata -->
     <title>iPhones Baratos | Loja Oficial de iPhones Novos e Seminovos</title>
+    <meta name="description" content="Compre iPhones novos lacrados e seminovos em Goiânia com o melhor preço do Brasil. Garantia de até 1 ano, envio rápido e pagamento em até 12x no cartão ou PIX.">
+    <meta name="keywords" content="iPhone barato, iPhone novos, iPhone seminovo, Goiânia, comprar iPhone, Apple">
+    <meta name="author" content="IPHONESBARATOS">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph (WhatsApp / Redes Sociais) -->
+    <meta property="og:title" content="iPhones Baratos | Loja Oficial">
+    <meta property="og:description" content="Os melhores preços em iPhones novos e seminovos com garantia. Confira nosso catálogo!">
+    <meta property="og:url" content="https://iphonesbaratos.com.br">
+    <meta property="og:type" content="website">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -14,7 +27,23 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f7; }
         .apple-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); }
-        .hero-video { width: 100%; height: auto; max-height: 75vh; object-fit: cover; display: block; }
+        
+        /* FAIXA PRETA E VÍDEO HERO RESPONSIVO */
+        .hero-container {
+            width: 100%;
+            height: 480px;
+            background-color: #000000;
+            overflow: hidden;
+            position: relative;
+        }
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -56,9 +85,9 @@
         </nav>
     </header>
 
-    <!-- BANNER HERO COM VÍDEO (BOTÃO "VER TODOS" REMOVIDO) -->
-    <section class="relative bg-black w-full overflow-hidden">
-        <video autoplay muted loop playsinline class="hero-video w-full">
+    <!-- BANNER HERO COM VÍDEO RODANDO PREENCHENDO A FAIXA PRETA -->
+    <section class="hero-container">
+        <video autoplay muted loop playsinline class="hero-video">
             <source src="assets/video_hero.mp4" type="video/mp4">
             Seu navegador não suporta vídeos HTML5.
         </video>
@@ -85,7 +114,7 @@
         </div>
     </section>
 
-    <!-- CATÁLOGO -->
+    <!-- CATÁLOGO DE PRODUTOS -->
     <main id="catalogo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="flex items-center justify-between mb-8">
             <div>
@@ -136,12 +165,12 @@
         </div>
     </footer>
 
-    <!-- MODAL CARRINHO COM BOTAO VOLTAR E REMOÇÃO DE PRODUTOS -->
+    <!-- MODAL CARRINHO -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
             
-            <!-- HEADER DO CARRINHO (COM BOTÃO CONTINUAR COMPRANDO / VOLTAR) -->
+            <!-- HEADER DO CARRINHO (COM BOTÃO DE VOLTAR/COMPRAR MAIS) -->
             <div class="p-4 border-b flex items-center justify-between bg-gray-50">
                 <button onclick="toggleCart()" class="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
                     <i class="fa-solid fa-arrow-left"></i> Voltar / Comprar mais
@@ -152,7 +181,7 @@
 
             <div id="cartContainer" class="flex-1 overflow-y-auto p-4 flex flex-col justify-between">
                 <div>
-                    <!-- LISTA DE ITENS COM BOTÃO DE EXCLUIR DESTAQUE -->
+                    <!-- LISTA DE ITENS DO CARRINHO COM OPÇÃO DE EXCLUIR -->
                     <div id="cartItems" class="space-y-3 mb-4"></div>
                 </div>
 
@@ -384,7 +413,7 @@
                     cart = [];
                     updateCartUI();
                 } else {
-                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Verifique as credenciais do Mercado Pago.'));
+                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Verifique os dados informados.'));
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
                 }
