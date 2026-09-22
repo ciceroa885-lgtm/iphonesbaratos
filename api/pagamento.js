@@ -1,5 +1,5 @@
 module.exports = async (req, res) => {
-    // Configuração de CORS
+    // Configuração de cabeçalhos CORS para permitir chamadas do front-end
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -13,14 +13,16 @@ module.exports = async (req, res) => {
         return res.status(405).json({ erro: 'Método não permitido' });
     }
 
+    // Token de Acesso de Produção do Mercado Pago
     const token = process.env.MP_ACCESS_TOKEN || 'APP_USR-96b55a37-1470-4730-b2ce-31e45c2bbb6b';
 
     try {
         const { nome, cpf, email, total, metodo } = req.body;
+        const cleanCpf = String(cpf || '').replace(/\D/g, '');
 
         if (metodo === 'card') {
-            // Chamada direta à API do Mercado Pago para criar Preferência
-            const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+            // Criar Preferência de Checkout para Cartão em até 12x
+            const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -40,7 +42,7 @@ module.exports = async (req, res) => {
                         email: email,
                         identification: {
                             type: 'CPF',
-                            number: String(cpf).replace(/\D/g, '')
+                            number: cleanCpf
                         }
                     },
                     payment_methods: {
@@ -49,10 +51,10 @@ module.exports = async (req, res) => {
                 })
             });
 
-            const data = await mpResponse.json();
+            const data = await response.json();
 
-            if (!mpResponse.ok) {
-                return res.status(400).json({ sucesso: false, erro: data.message || 'Erro no Checkout MP' });
+            if (!response.ok) {
+                return res.status(400).json({ sucesso: false, erro: data.message || 'Erro ao gerar preferência no Mercado Pago' });
             }
 
             return res.status(200).json({
@@ -61,13 +63,13 @@ module.exports = async (req, res) => {
             });
 
         } else {
-            // Chamada direta à API do Mercado Pago para Pagamento PIX/Boleto
-            const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
+            // Criar Pagamento Transparente para PIX ou Boleto
+            const response = await fetch('https://api.mercadopago.com/v1/payments', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
-                    'X-Idempotency-Key': `${Date.now()}-${Math.random()}`
+                    'X-Idempotency-Key': `${Date.now()}-${Math.floor(Math.random() * 1000000)}`
                 },
                 body: JSON.stringify({
                     transaction_amount: Number(total),
@@ -78,16 +80,17 @@ module.exports = async (req, res) => {
                         first_name: nome,
                         identification: {
                             type: 'CPF',
-                            number: String(cpf).replace(/\D/g, '')
+                            number: cleanCpf
                         }
                     }
                 })
             });
 
-            const payment = await mpResponse.json();
+            const payment = await response.json();
 
-            if (!mpResponse.ok) {
-                return res.status(400).json({ sucesso: false, erro: payment.message || payment.cause?.[0]?.description || 'Erro ao criar pagamento' });
+            if (!response.ok) {
+                const errorMsg = payment.message || (payment.cause && payment.cause[0] ? payment.cause[0].description : 'Erro no processamento do pagamento');
+                return res.status(400).json({ sucesso: false, erro: errorMsg });
             }
 
             return res.status(200).json({
@@ -100,6 +103,6 @@ module.exports = async (req, res) => {
             });
         }
     } catch (error) {
-        return res.status(500).json({ sucesso: false, erro: error.message });
+        return res.status(500).json({ sucesso: false, erro: error.message || 'Erro interno no servidor' });
     }
 };
