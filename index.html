@@ -6,8 +6,6 @@
     <title>iPhones Baratos | Loja Oficial de iPhones Novos e Seminovos</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Mercado Pago SDK v2 -->
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
@@ -27,13 +25,11 @@
     <header class="sticky top-0 z-40 apple-glass border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <!-- LOGO -->
                 <a href="#" class="flex items-center gap-2 group">
                     <i class="fa-brands fa-apple text-2xl group-hover:scale-105 transition-transform"></i>
                     <span class="font-bold text-lg tracking-tight text-slate-900">IPHONESBARATOS</span>
                 </a>
 
-                <!-- BUSCA -->
                 <div class="hidden md:flex flex-1 max-w-md mx-8">
                     <div class="relative w-full">
                         <input type="search" id="searchInput" autocomplete="off" oninput="filterProducts()" placeholder="Buscar iPhone 15, 16 Pro Max, Lacrado..." class="w-full bg-gray-100 border border-gray-200 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition">
@@ -41,7 +37,6 @@
                     </div>
                 </div>
 
-                <!-- AÇÕES -->
                 <div class="flex items-center gap-4">
                     <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-blue-600 transition">
                         <i class="fa-solid fa-bag-shopping text-xl"></i>
@@ -51,7 +46,6 @@
             </div>
         </div>
 
-        <!-- CATEGORIAS -->
         <nav class="border-t border-gray-100 bg-white/50 backdrop-blur-md overflow-x-auto hide-scrollbar py-2.5">
             <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 text-xs font-medium whitespace-nowrap">
                 <button onclick="filterCategory('all')" class="text-blue-600 font-semibold hover:underline">Todos os iPhones</button>
@@ -62,7 +56,7 @@
         </nav>
     </header>
 
-    <!-- BANNER HERO -->
+    <!-- BANNER VÍDEO HERO -->
     <section class="relative bg-black w-full overflow-hidden">
         <video autoplay muted loop playsinline class="hero-video w-full">
             <source src="assets/video_hero.mp4" type="video/mp4">
@@ -75,7 +69,7 @@
         </div>
     </section>
 
-    <!-- BANNER DE CONFIANÇA -->
+    <!-- INFORMAÇÕES DE CONFIANÇA -->
     <section class="bg-white border-b border-gray-200 py-6">
         <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div class="p-3">
@@ -105,12 +99,10 @@
             </div>
         </div>
 
-        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Produtos inseridos via JS -->
-        </div>
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </main>
 
-    <!-- RODAPÉ DE ATENDIMENTO E CEP -->
+    <!-- RODAPÉ -->
     <footer class="bg-slate-900 text-gray-400 py-12 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -149,7 +141,7 @@
         </div>
     </footer>
 
-    <!-- MODAL DO CARRINHO / CHECKOUT -->
+    <!-- CARRINHO -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
@@ -182,45 +174,22 @@
                             <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
                         </div>
 
-                        <!-- FORMA DE PAGAMENTO -->
                         <div class="space-y-2 pt-2 border-t">
                             <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
-                            <div class="grid grid-cols-3 gap-2 text-xs">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
                                 <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="pix" checked onclick="togglePaymentFields('pix')" class="mb-1">
+                                    <input type="radio" name="payMethod" value="pix" checked class="mb-1">
                                     <span class="font-semibold text-slate-800"><i class="fa-brands fa-pix text-green-500"></i> PIX</span>
                                 </label>
                                 <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="card" onclick="togglePaymentFields('card')" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-credit-card text-blue-500"></i> Cartão</span>
-                                </label>
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="boleto" onclick="togglePaymentFields('boleto')" class="mb-1">
+                                    <input type="radio" name="payMethod" value="boleto" class="mb-1">
                                     <span class="font-semibold text-slate-800"><i class="fa-solid fa-barcode text-gray-700"></i> Boleto</span>
                                 </label>
-                            </div>
-
-                            <!-- CAMPOS SEGUROS CARTÃO -->
-                            <div id="cardFields" class="hidden space-y-2 pt-2">
-                                <p class="text-[11px] text-gray-500">Sua transação é criptografada e processada via Mercado Pago:</p>
-                                <div id="cardNumber" class="w-full text-xs p-2 border rounded bg-white h-10"></div>
-                                <div class="flex gap-2">
-                                    <div id="cardExpirationDate" class="w-1/2 text-xs p-2 border rounded bg-white h-10"></div>
-                                    <div id="securityCode" class="w-1/2 text-xs p-2 border rounded bg-white h-10"></div>
-                                </div>
-                                <input type="text" id="cardholderName" placeholder="Nome impresso no cartão" autocomplete="cc-name" class="w-full text-xs p-2 border rounded">
-                                <select id="installments" class="w-full text-xs p-2 border rounded text-gray-700">
-                                    <option value="1">1x à vista</option>
-                                    <option value="2">2x no cartão</option>
-                                    <option value="3">3x no cartão</option>
-                                    <option value="6">6x no cartão</option>
-                                    <option value="12">12x no cartão</option>
-                                </select>
                             </div>
                         </div>
 
                         <button id="btnSubmit" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
-                            Finalizar Compra / Ir para Pagamento
+                            Finalizar Compra / Gerar Pagamento
                         </button>
                     </form>
                 </div>
@@ -228,7 +197,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT PRINCIPAL -->
+    <!-- SCRIPT -->
     <script>
         const products = [
             { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 11150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
@@ -273,7 +242,6 @@
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
                         <div class="text-lg font-extrabold text-slate-900">R$ ${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                        <div class="text-xs text-gray-500">ou 12x de R$ ${(p.price * 1.15 / 12).toLocaleString('pt-BR', {minimumFractionDigits: 2})} no cartão</div>
                     </div>
                     <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
@@ -337,15 +305,6 @@
             document.getElementById('cartModal').classList.toggle('hidden');
         }
 
-        function togglePaymentFields(method) {
-            const cardFields = document.getElementById('cardFields');
-            if (method === 'card') {
-                cardFields.classList.remove('hidden');
-            } else {
-                cardFields.classList.add('hidden');
-            }
-        }
-
         async function processOrder() {
             const name = document.getElementById('custName').value;
             const cpf = document.getElementById('custCPF').value;
@@ -363,8 +322,7 @@
             btnSubmit.disabled = true;
             btnSubmit.innerText = 'Gerando Pagamento...';
 
-            // Envia apenas o array seguro com id e quantidade para recálculo no backend
-            const itemsPayload = cart.map(item => ({ id: item.id, quantity: 1 }));
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
 
             try {
                 const response = await fetch('/api/pagamento', {
@@ -374,7 +332,7 @@
                         nome: name,
                         cpf: cpf,
                         email: email,
-                        items: itemsPayload,
+                        total: total,
                         metodo: payMethod
                     })
                 });
@@ -386,7 +344,7 @@
                         container.innerHTML = `
                             <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
                                 <h4 class="font-bold text-base text-slate-900">Pagamento via PIX Gerado!</h4>
-                                <p class="text-xs text-gray-500">Escaneie o QR Code abaixo no aplicativo do seu banco:</p>
+                                <p class="text-xs text-gray-500">Escaneie o QR Code abaixo no seu banco:</p>
                                 <img src="data:image/jpeg;base64,${data.qr_code_base64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-lg shadow-md">
                                 <div class="w-full">
                                     <p class="text-[11px] text-gray-500 mb-1">Ou copie a chave abaixo:</p>
@@ -397,35 +355,28 @@
                                 </div>
                             </div>
                         `;
-                        cart = [];
-                        updateCartUI();
                     } else if (payMethod === 'boleto') {
                         container.innerHTML = `
                             <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
                                 <h4 class="font-bold text-base text-slate-900">Boleto Gerado com Sucesso!</h4>
-                                <p class="text-xs text-gray-500">Clique no botão abaixo para abrir seu boleto:</p>
-                                <a href="${data.pdf_url}" target="_blank" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-xs block">
+                                <p class="text-xs text-gray-500">Clique no botão para abrir seu boleto:</p>
+                                <a href="${data.pdf_url}" target="_blank" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-xs block text-center">
                                     <i class="fa-solid fa-file-pdf"></i> Visualizar / Imprimir Boleto
                                 </a>
                             </div>
                         `;
-                        cart = [];
-                        updateCartUI();
-                    } else {
-                        alert('Pagamento processado com sucesso!');
-                        cart = [];
-                        updateCartUI();
-                        toggleCart();
                     }
+                    cart = [];
+                    updateCartUI();
                 } else {
-                    alert('Erro no pagamento: ' + (data.erro || 'Tente novamente em instantes.'));
+                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Tente novamente.'));
                     btnSubmit.disabled = false;
-                    btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+                    btnSubmit.innerText = 'Finalizar Compra / Gerar Pagamento';
                 }
             } catch (err) {
-                alert('Ocorreu um erro de conexão com o servidor de pagamento no Vercel.');
+                alert('Ocorreu um erro ao conectar com a API da Vercel.');
                 btnSubmit.disabled = false;
-                btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+                btnSubmit.innerText = 'Finalizar Compra / Gerar Pagamento';
             }
         }
 
