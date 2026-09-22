@@ -9,7 +9,7 @@
     <!-- Mercado Pago SDK -->
     <script src="https://sdk.mercadopago.com/js/v2"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Libre+Barcode+128&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -22,11 +22,6 @@
     </style>
 </head>
 <body class="text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
-
-    <!-- BARRA SUPERIOR -->
-    <div class="bg-black text-white text-xs py-2 px-4 text-center font-medium">
-        <span><i class="fa-solid fa-truck-fast text-blue-400 mr-2"></i>Frete Grátis via Sedex para todo o Brasil em compras acima de R$ 3.000</span>
-    </div>
 
     <!-- HEADER -->
     <header class="sticky top-0 z-40 apple-glass border-b border-gray-200">
@@ -120,7 +115,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
                 <h3 class="text-white font-bold text-lg mb-3">IPHONESBARATOS.COM.BR</h3>
-                <p class="text-xs leading-relaxed text-gray-400">Sua loja especializada na venda de iPhones novos lacrados e seminovos de altíssima qualidade com envio seguro para todo o Brasil.</p>
+                <p class="text-xs leading-relaxed text-gray-400">Sua loja especializada na venda de iPhones novos lacrados e seminovos de altísima qualidade com envio seguro para todo o Brasil.</p>
             </div>
             <div>
                 <h4 class="text-white font-bold text-sm mb-3">Endereço de Atendimento</h4>
@@ -523,7 +518,7 @@
                     </div>
                 `;
             } else if (payMethod === 'boleto') {
-                const boletoCode = `23793.38128 60007.827136 12000.633303 1 9600000${total.toFixed(0)}`;
+                const boletoCode = `03399.00000 00000.000000 00000.000000 1 9600000${total.toFixed(0)}`;
                 container.innerHTML = `
                     <div class="text-center py-4 px-2 flex flex-col justify-between h-full">
                         <div>
@@ -584,40 +579,89 @@
 
         function gerarBoletoPDF(nome, cpf, valor) {
             const novaJanela = window.open('', '_blank');
+            const dataAtual = new Date();
+            const dataVencimento = new Date();
+            dataVencimento.setDate(dataAtual.getDate() + 3);
+
+            const formatData = (d) => d.toLocaleDateString('pt-BR');
+            const valorFormatado = parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
             const boletoHTML = `
                 <!DOCTYPE html>
                 <html lang="pt-BR">
                 <head>
                     <meta charset="UTF-8">
                     <title>Boleto Bancário - iPhones Baratos</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128&display=swap" rel="stylesheet">
                     <style>
-                        body { font-family: Arial, sans-serif; padding: 30px; color: #1e293b; background: #fff; }
-                        .boleto-card { border: 2px solid #0f172a; border-radius: 8px; padding: 25px; max-width: 650px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
-                        .header h2 { margin: 0; font-size: 20px; font-weight: bold; }
-                        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
-                        .barcode-box { text-align: center; margin-top: 25px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 6px; }
-                        .barcode-text { font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 1px; color: #0f172a; margin-top: 8px; }
-                        .btn-print { display: block; width: 100%; max-width: 650px; margin: 20px auto 0; padding: 12px; background: #2563eb; color: #fff; text-align: center; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+                        body { font-family: Arial, sans-serif; font-size: 11px; color: #000; margin: 0; padding: 20px; background: #fff; }
+                        .boleto-container { width: 700px; margin: 0 auto; border-top: 1px dashed #000; padding-top: 10px; }
+                        .bank-line { display: flex; align-items: flex-end; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 5px; }
+                        .bank-logo { font-size: 16px; font-weight: bold; width: 180px; text-transform: uppercase; }
+                        .bank-code { font-size: 18px; font-weight: bold; padding: 0 15px; border-left: 2px solid #000; border-right: 2px solid #000; }
+                        .linha-digitavel { font-size: 13px; font-weight: bold; flex-1; text-align: right; font-family: monospace; }
+                        table.boleto-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
+                        table.boleto-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
+                        .label { font-size: 9px; text-transform: uppercase; color: #333; display: block; margin-bottom: 2px; }
+                        .value { font-size: 11px; font-weight: bold; }
+                        .value-big { font-size: 13px; font-weight: bold; }
+                        .barcode-render { font-family: 'Libre Barcode 128', cursive; font-size: 55px; text-align: center; margin-top: 15px; line-height: 1; }
+                        .btn-print { display: block; width: 700px; margin: 0 auto 20px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; }
                         @media print { .btn-print { display: none; } }
                     </style>
                 </head>
                 <body>
-                    <div class="boleto-card">
-                        <div class="header">
-                            <h2>IPHONES BARATOS</h2>
-                            <span style="font-size: 12px; font-weight: bold; color: #64748b;">BOLETO DE COBRANÇA</span>
+                    <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir / Salvar em PDF</button>
+                    
+                    <div class="boleto-container">
+                        <!-- CABEÇALHO DO BOLETO -->
+                        <div class="bank-line">
+                            <div class="bank-logo">MERCADO PAGO</div>
+                            <div class="bank-code">033-7</div>
+                            <div class="linha-digitavel">03399.00000 00000.000000 00000.000000 1 9600000${parseFloat(valor).toFixed(0)}</div>
                         </div>
-                        <div class="info-row"><span>Pagador:</span> <strong>${nome}</strong></div>
-                        <div class="info-row"><span>CPF:</span> <strong>${cpf}</strong></div>
-                        <div class="info-row"><span>Valor Total:</span> <strong style="color: #16a34a; font-size: 16px;">R$ ${parseFloat(valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></div>
-                        <div class="info-row"><span>Vencimento:</span> <strong>3 Dias Úteis</strong></div>
-                        <div class="barcode-box">
-                            <span style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Linha Digitável do Código de Barras</span>
-                            <div class="barcode-text">23793.38128 60007.827136 12000.633303 1 9600000${parseFloat(valor).toFixed(0)}</div>
+
+                        <!-- TABELA DE DADOS DO BOLETO -->
+                        <table class="boleto-table">
+                            <tr>
+                                <td colspan="3"><span class="label">Local de Pagamento</span><span class="value">Pagável em qualquer banco ou casa lotérica até o vencimento</span></td>
+                                <td style="width: 180px;"><span class="label">Vencimento</span><span class="value-big">${formatData(dataVencimento)}</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><span class="label">Beneficiário / CNPJ</span><span class="value">IPHONES BARATOS - CNPJ: 28.142.765/0001-85</span></td>
+                                <td><span class="label">Agência/Código Beneficiário</span><span class="value">0001 / 28142765-8</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="label">Data do Documento</span><span class="value">${formatData(dataAtual)}</span></td>
+                                <td><span class="label">Nº Documento</span><span class="value">IB-${Math.floor(100000 + Math.random() * 900000)}</span></td>
+                                <td><span class="label">Espécie Doc.</span><span class="value">DM</span></td>
+                                <td><span class="label">Valor do Documento</span><span class="value-big">R$ ${valorFormatado}</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3"><span class="label">Instruções de Responsabilidade do Beneficiário</span>
+                                    <div class="value" style="font-weight: normal; margin-top: 5px;">
+                                        • Não receber após o vencimento.<br>
+                                        • Envio liberado automaticamente após compensação bancária.<br>
+                                        • Dúvidas referente ao pedido acesse iphonesbaratos.com.br.
+                                    </div>
+                                </td>
+                                <td><span class="label">(-) Desconto / Abatimento</span><span class="value"></span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <span class="label">Pagador / CPF</span>
+                                    <span class="value">${nome} - CPF: ${cpf}</span>
+                                </td>
+                                <td><span class="label">(=) Valor Cobrado</span><span class="value-big">R$ ${valorFormatado}</span></td>
+                            </tr>
+                        </table>
+
+                        <!-- CÓDIGO DE BARRAS GRÁFICO VISUAL -->
+                        <div class="barcode-render">
+                            *0339900000000000000000000000000019600000${parseFloat(valor).toFixed(0)}*
                         </div>
+                        <div style="text-align: right; font-size: 9px; font-weight: bold; margin-top: 5px;">Ficha de Compensação - Autenticação Mecânica</div>
                     </div>
-                    <button class="btn-print" onclick="window.print()"> Imprimir / Salvar em PDF</button>
                 </body>
                 </html>
             `;
