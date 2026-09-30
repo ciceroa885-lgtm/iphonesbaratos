@@ -23,6 +23,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mercado Pago SDK -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f7; }
@@ -94,7 +96,7 @@
         </nav>
     </header>
 
-    <!-- BANNER HERO COM REPRODUÇÃO AUTOMÁTICA AO ROLAR / CLICAR -->
+    <!-- BANNER HERO COM REPRODUÇÃO AUTOMÁTICA -->
     <section class="hero-container">
         <video id="heroVideo" autoplay muted loop playsinline preload="auto" class="hero-video">
             <source src="assets/video_hero.mp4" type="video/mp4">
@@ -118,7 +120,7 @@
             <div class="p-3">
                 <i class="fa-solid fa-credit-card text-2xl text-blue-600 mb-2"></i>
                 <h4 class="font-bold text-sm">Até 12x no Cartão</h4>
-                <p class="text-xs text-gray-500">Aceitamos Cartão, PIX e Boleto</p>
+                <p class="text-xs text-gray-500">Aceitamos Cartão e PIX via Mercado Pago</p>
             </div>
         </div>
     </section>
@@ -153,12 +155,11 @@
             </div>
             <div>
                 <h4 class="text-white font-bold text-sm mb-3">Formas de Pagamento Aceitas</h4>
-                <p class="text-xs mb-3">PIX à vista, Boleto Bancário ou parcelado no Cartão de Crédito em até 12x.</p>
+                <p class="text-xs mb-3">PIX à vista ou parcelado no Cartão de Crédito em até 12x via Mercado Pago.</p>
                 <div class="flex flex-wrap gap-3 text-2xl text-gray-300">
                     <i class="fa-brands fa-pix text-green-400"></i>
                     <i class="fa-brands fa-cc-visa"></i>
                     <i class="fa-brands fa-cc-mastercard"></i>
-                    <i class="fa-solid fa-barcode"></i>
                 </div>
             </div>
         </div>
@@ -174,12 +175,12 @@
         </div>
     </footer>
 
-    <!-- MODAL CARRINHO -->
+    <!-- MODAL CARRINHO / CHECKOUT -->
     <div id="cartModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
         <div class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
             
-            <!-- HEADER DO CARRINHO (COM BOTÃO DE VOLTAR/COMPRAR MAIS) -->
+            <!-- HEADER DO CARRINHO -->
             <div class="p-4 border-b flex items-center justify-between bg-gray-50">
                 <button onclick="toggleCart()" class="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
                     <i class="fa-solid fa-arrow-left"></i> Voltar / Comprar mais
@@ -190,51 +191,81 @@
 
             <div id="cartContainer" class="flex-1 overflow-y-auto p-4 flex flex-col justify-between">
                 <div>
-                    <!-- LISTA DE ITENS DO CARRINHO COM OPÇÃO DE EXCLUIR -->
+                    <!-- LISTA DE ITENS -->
                     <div id="cartItems" class="space-y-3 mb-4"></div>
                 </div>
 
-                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-3 mt-auto rounded-xl">
-                    <div id="cartSummary" class="space-y-1 text-sm">
-                        <div class="flex justify-between font-bold text-base text-slate-900">
+                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-4 mt-auto rounded-xl">
+                    
+                    <!-- DADOS DO CLIENTE & FRETE -->
+                    <div class="space-y-3">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 border-b pb-1">1. Entrega e Cadastro</h4>
+                        
+                        <input type="text" id="custName" required placeholder="Nome Completo" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="custCPF" required placeholder="CPF (apenas números)" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="tel" id="custPhone" required placeholder="WhatsApp" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <input type="email" id="custEmail" required placeholder="Seu E-mail" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+
+                        <!-- CÁLCULO DE CEP -->
+                        <div class="pt-2">
+                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Calcular Frete</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="custCEP" placeholder="CEP (ex: 74500000)" maxlength="8" onblur="buscarEnderecoPorCEP()" class="flex-1 text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <button type="button" onclick="calcularFreteBackend()" class="bg-slate-900 text-white text-xs px-3 py-2.5 rounded-lg font-bold hover:bg-blue-600 transition">
+                                    Calcular
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ENDEREÇO DETALHADO -->
+                        <div id="addressDetails" class="space-y-2">
+                            <input type="text" id="custStreet" placeholder="Rua / Avenida" class="w-full text-xs p-2.5 border rounded-lg bg-gray-50" readonly>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="custNumber" placeholder="Número" class="w-full text-xs p-2.5 border rounded-lg outline-none">
+                                <input type="text" id="custComp" placeholder="Complemento" class="w-full text-xs p-2.5 border rounded-lg outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="custNeighborhood" placeholder="Bairro" class="w-full text-xs p-2.5 border rounded-lg bg-gray-50" readonly>
+                                <input type="text" id="custCityUF" placeholder="Cidade / UF" class="w-full text-xs p-2.5 border rounded-lg bg-gray-50" readonly>
+                            </div>
+                        </div>
+
+                        <!-- OPÇÕES DE FRETE -->
+                        <div id="shippingOptionsContainer" class="hidden space-y-2 pt-2">
+                            <label class="block text-[11px] font-semibold text-gray-600">Selecione a Opção de Envio:</label>
+                            <div id="shippingList" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- RESUMO DE VALORES -->
+                    <div id="cartSummary" class="space-y-1 text-sm border-t pt-3">
+                        <div class="flex justify-between text-xs text-gray-600">
+                            <span>Subtotal:</span>
+                            <span id="cartSubtotal">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600">
+                            <span>Frete:</span>
+                            <span id="cartShippingValue">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-base text-slate-900 border-t pt-1 mt-1">
                             <span>Total:</span>
                             <span id="cartTotal">R$ 0,00</span>
                         </div>
                     </div>
 
-                    <form id="checkoutForm" onsubmit="event.preventDefault(); processOrder();" class="space-y-3">
-                        <div class="space-y-2 pt-2 border-t">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente para Envio</h4>
-                            <input type="text" id="custName" required placeholder="Nome Completo" autocomplete="name" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custCPF" required placeholder="CPF (Apenas números)" autocomplete="off" class="w-full text-xs p-2 border rounded">
-                            <input type="email" id="custEmail" required placeholder="Seu E-mail" autocomplete="email" class="w-full text-xs p-2 border rounded">
-                            <input type="tel" id="custPhone" required placeholder="WhatsApp / Telefone" autocomplete="tel" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custCEP" required placeholder="CEP de Entrega" value="74500-000" autocomplete="postal-code" class="w-full text-xs p-2 border rounded">
-                            <input type="text" id="custAddress" required placeholder="Endereço, Número e Bairro" autocomplete="street-address" class="w-full text-xs p-2 border rounded">
-                        </div>
+                    <!-- BOTÃO IR PARA PAGAMENTO -->
+                    <button id="btnInitPayment" onclick="iniciarCheckoutMercadoPago()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-md">
+                        Prosseguir para Pagamento
+                    </button>
 
-                        <div class="space-y-2 pt-2 border-t">
-                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 mb-2">Forma de Pagamento</h4>
-                            <div class="grid grid-cols-3 gap-2 text-xs">
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="pix" checked class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-brands fa-pix text-green-500"></i> PIX</span>
-                                </label>
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="card" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-credit-card text-blue-500"></i> Cartão 12x</span>
-                                </label>
-                                <label class="flex flex-col items-center justify-center p-2 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
-                                    <input type="radio" name="payMethod" value="boleto" class="mb-1">
-                                    <span class="font-semibold text-slate-800"><i class="fa-solid fa-barcode text-gray-700"></i> Boleto</span>
-                                </label>
-                            </div>
-                        </div>
+                    <!-- MERCADO PAGO PAYMENT BRICK CONTAINER -->
+                    <div id="paymentBrick_container" class="mt-4"></div>
 
-                        <button id="btnSubmit" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-sm transition">
-                            Finalizar Compra / Ir para Pagamento
-                        </button>
-                    </form>
+                    <!-- TELA DE RESULTADO / QR CODE PIX -->
+                    <div id="paymentResult" class="hidden space-y-3 pt-3 border-t text-center"></div>
+
                 </div>
             </div>
         </div>
@@ -242,7 +273,7 @@
 
     <!-- SCRIPT DA LOJA -->
     <script>
-        // SCRIPT PARA FORÇAR A REPRODUÇÃO DO VÍDEO ASSIM QUE O USUÁRIO ROLA OU INTERAGE
+        // SCRIPT PARA FORÇAR A REPRODUÇÃO DO VÍDEO HERO
         const heroVideo = document.getElementById('heroVideo');
         if (heroVideo) {
             const playVideo = () => {
@@ -250,7 +281,6 @@
                     heroVideo.play().catch(e => console.log("Autoplay aguardando interação:", e));
                 }
             };
-            
             window.addEventListener('scroll', playVideo, { once: true });
             window.addEventListener('touchstart', playVideo, { once: true });
             window.addEventListener('click', playVideo, { once: true });
@@ -285,6 +315,30 @@
         ];
 
         let cart = [];
+        let selectedShippingCost = 0;
+        let selectedShippingService = "";
+        let mpPublicKey = "";
+        let mpInstance = null;
+        let cardBrickController = null;
+
+        // INICIALIZAÇÃO
+        document.addEventListener("DOMContentLoaded", () => {
+            renderProducts(products);
+            obterConfiguracoesBackend();
+        });
+
+        async function obterConfiguracoesBackend() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+                if (data.publicKey) {
+                    mpPublicKey = data.publicKey;
+                    mpInstance = new MercadoPago(mpPublicKey, { locale: 'pt-BR' });
+                }
+            } catch (err) {
+                console.error("Erro ao carregar configurações do servidor:", err);
+            }
+        }
 
         function renderProducts(items) {
             const grid = document.getElementById('productGrid');
@@ -324,6 +378,16 @@
             toggleCart();
         }
 
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            updateCartUI();
+        }
+
+        function toggleCart() {
+            updateCartUI();
+            document.getElementById('cartModal').classList.toggle('hidden');
+        }
+
         function updateCartUI() {
             document.getElementById('cartCount').innerText = cart.length;
             const container = document.getElementById('cartItems');
@@ -349,105 +413,241 @@
                 `).join('');
             }
 
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            const totalElement = document.getElementById('cartTotal');
-            if (totalElement) {
-                totalElement.innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const total = subtotal + selectedShippingCost;
+
+            document.getElementById('cartSubtotal').innerText = `R$ ${subtotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cartShippingValue').innerText = `R$ ${selectedShippingCost.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('cartTotal').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        }
+
+        // BUSCA ENDEREÇO VIA CEP
+        async function buscarEnderecoPorCEP() {
+            const cep = document.getElementById('custCEP').value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await res.json();
+
+                if (!data.erro) {
+                    document.getElementById('custStreet').value = data.logradouro || '';
+                    document.getElementById('custNeighborhood').value = data.bairro || '';
+                    document.getElementById('custCityUF').value = `${data.localidade} / ${data.uf}`;
+                }
+            } catch (e) {
+                console.error("Erro na busca do ViaCEP:", e);
             }
         }
 
-        function removeFromCart(idx) {
-            cart.splice(idx, 1);
-            updateCartUI();
-        }
-
-        function toggleCart() {
-            updateCartUI();
-            document.getElementById('cartModal').classList.toggle('hidden');
-        }
-
-        async function processOrder() {
-            const name = document.getElementById('custName').value;
-            const cpf = document.getElementById('custCPF').value;
-            const email = document.getElementById('custEmail').value;
-            const payMethod = document.querySelector('input[name="payMethod"]:checked').value;
-
-            if (!name || !cpf || !email || cart.length === 0) {
-                alert('Por favor, preencha todos os seus dados e adicione produtos ao carrinho.');
+        // CÁLCULO DE FRETE VIA BACKEND
+        async function calcularFreteBackend() {
+            const cep = document.getElementById('custCEP').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert("Por favor, digite um CEP válido com 8 dígitos.");
                 return;
             }
 
-            const container = document.getElementById('cartContainer');
-            const btnSubmit = document.getElementById('btnSubmit');
+            if (cart.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
 
-            btnSubmit.disabled = true;
-            btnSubmit.innerText = 'Gerando Pagamento...';
-
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const shippingContainer = document.getElementById('shippingOptionsContainer');
+            const shippingList = document.getElementById('shippingList');
+            shippingList.innerHTML = '<div class="text-xs text-gray-500 text-center py-2"><i class="fa-solid fa-spinner fa-spin"></i> Consultando opções de frete...</div>';
+            shippingContainer.classList.remove('hidden');
 
             try {
-                const response = await fetch('/api/pagamento', {
+                const res = await fetch('/api/frete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        nome: name,
-                        cpf: cpf,
-                        email: email,
-                        total: total,
-                        metodo: payMethod
+                        destination_cep: cep,
+                        items: cart.map(item => ({ id: item.id, quantity: 1 }))
                     })
                 });
 
-                const data = await response.json();
+                const options = await res.json();
 
-                if (response.ok && data.sucesso) {
-                    if (payMethod === 'pix') {
-                        container.innerHTML = `
-                            <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
-                                <h4 class="font-bold text-base text-slate-900">Pagamento via PIX Gerado!</h4>
-                                <p class="text-xs text-gray-500">Escaneie o QR Code abaixo no seu banco:</p>
-                                <img src="data:image/jpeg;base64,${data.qr_code_base64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-lg shadow-md">
-                                <div class="w-full">
-                                    <p class="text-[11px] text-gray-500 mb-1">Ou copie a chave abaixo:</p>
-                                    <textarea readonly id="pixCode" class="w-full text-[10px] p-2 border rounded bg-gray-50 h-16 select-all">${data.qr_code_pix}</textarea>
-                                    <button onclick="navigator.clipboard.writeText(document.getElementById('pixCode').value); alert('Código PIX copiado!');" class="mt-2 w-full bg-green-600 text-white font-bold py-2 rounded text-xs">
-                                        <i class="fa-regular fa-copy"></i> Copiar Código PIX
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    } else if (payMethod === 'boleto') {
-                        container.innerHTML = `
-                            <div class="text-center py-6 px-4 flex flex-col items-center justify-center space-y-4">
-                                <h4 class="font-bold text-base text-slate-900">Boleto Gerado com Sucesso!</h4>
-                                <p class="text-xs text-gray-500">Clique no botão para abrir seu boleto:</p>
-                                <a href="${data.pdf_url}" target="_blank" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg text-xs block text-center">
-                                    <i class="fa-solid fa-file-pdf"></i> Visualizar / Imprimir Boleto
-                                </a>
-                            </div>
-                        `;
-                    } else if (payMethod === 'card') {
-                        if (data.init_point) {
-                            window.location.href = data.init_point;
-                        } else {
-                            alert('Erro ao redirecionar para o Checkout de Cartão.');
-                        }
-                    }
-                    cart = [];
-                    updateCartUI();
-                } else {
-                    alert('Erro ao gerar pagamento: ' + (data.erro || 'Verifique os dados informados.'));
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+                if (!res.ok || !Array.isArray(options) || options.length === 0) {
+                    shippingList.innerHTML = '<div class="text-xs text-red-500 py-1">Não foi possível calcular o frete para este CEP.</div>';
+                    return;
                 }
+
+                shippingList.innerHTML = options.map((opt, i) => `
+                    <label class="flex items-center justify-between p-2.5 border rounded-lg cursor-pointer bg-white hover:border-blue-500 transition">
+                        <div class="flex items-center gap-2">
+                            <input type="radio" name="shipping_option" value="${opt.price}" data-name="${opt.name}" ${i === 0 ? 'checked' : ''} onchange="selecionarFrete(${opt.price}, '${opt.name}')">
+                            <div>
+                                <div class="font-bold text-xs text-slate-800">${opt.name}</div>
+                                <div class="text-[10px] text-gray-500">Prazo: ~${opt.delivery_time} dias úteis</div>
+                            </div>
+                        </div>
+                        <span class="font-bold text-xs text-blue-600">R$ ${parseFloat(opt.price).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </label>
+                `).join('');
+
+                // Seleciona a primeira opção por padrão
+                if (options.length > 0) {
+                    selecionarFrete(parseFloat(options[0].price), options[0].name);
+                }
+
             } catch (err) {
-                alert('Erro ao conectar com o servidor da Vercel.');
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = 'Finalizar Compra / Ir para Pagamento';
+                console.error("Erro ao calcular frete:", err);
+                shippingList.innerHTML = '<div class="text-xs text-red-500 py-1">Erro de conexão ao calcular o frete.</div>';
             }
         }
 
-        renderProducts(products);
+        function selecionarFrete(valor, nome) {
+            selectedShippingCost = parseFloat(valor);
+            selectedShippingService = nome;
+            updateCartUI();
+        }
+
+        // INICIAR MERCADO PAGO PAYMENT BRICK
+        async function iniciarCheckoutMercadoPago() {
+            const name = document.getElementById('custName').value.trim();
+            const cpf = document.getElementById('custCPF').value.trim();
+            const email = document.getElementById('custEmail').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const cep = document.getElementById('custCEP').value.trim();
+            const street = document.getElementById('custStreet').value.trim();
+            const number = document.getElementById('custNumber').value.trim();
+
+            if (!name || !cpf || !email || !phone || !cep || !street || !number) {
+                alert("Por favor, preencha todos os campos obrigatórios do formulário de entrega.");
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
+
+            if (!mpInstance) {
+                alert("Aguarde o carregamento do gateway de pagamento ou verifique as credenciais.");
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const total = subtotal + selectedShippingCost;
+
+            document.getElementById('btnInitPayment').classList.add('hidden');
+
+            const bricksBuilder = mpInstance.bricks();
+
+            const renderPaymentBrick = async (builder) => {
+                const settings = {
+                    initialization: {
+                        amount: total,
+                        payer: {
+                            email: email,
+                        },
+                    },
+                    customization: {
+                        paymentMethods: {
+                            ticket: "all",
+                            bankTransfer: "all",
+                            creditCard: "all",
+                            maxInstallments: 12,
+                        },
+                    },
+                    callbacks: {
+                        onReady: () => {
+                            console.log("Payment Brick pronto.");
+                        },
+                        onSubmit: ({ selectedPaymentMethod, formData }) => {
+                            return new Promise((resolve, reject) => {
+                                const payload = {
+                                    formData,
+                                    customer: {
+                                        name,
+                                        cpf,
+                                        email,
+                                        phone,
+                                        cep,
+                                        street,
+                                        number,
+                                        complement: document.getElementById('custComp').value,
+                                        neighborhood: document.getElementById('custNeighborhood').value,
+                                        cityUF: document.getElementById('custCityUF').value
+                                    },
+                                    items: cart.map(i => ({ id: i.id, quantity: 1 })),
+                                    shippingCost: selectedShippingCost,
+                                    shippingService: selectedShippingService
+                                };
+
+                                fetch("/api/pagamento", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify(payload),
+                                })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    exibirResultadoPagamento(data);
+                                    resolve();
+                                })
+                                .catch((error) => {
+                                    console.error("Erro ao processar pagamento:", error);
+                                    alert("Falha no processamento do pagamento. Tente novamente.");
+                                    reject();
+                                });
+                            });
+                        },
+                        onError: (error) => {
+                            console.error("Erro no Brick Mercado Pago:", error);
+                        },
+                    },
+                };
+
+                cardBrickController = await builder.create(
+                    'payment',
+                    'paymentBrick_container',
+                    settings
+                );
+            };
+
+            renderPaymentBrick(bricksBuilder);
+        }
+
+        function exibirResultadoPagamento(data) {
+            const container = document.getElementById('paymentResult');
+            document.getElementById('paymentBrick_container').classList.add('hidden');
+            container.classList.remove('hidden');
+
+            if (data.status === 'approved') {
+                container.innerHTML = `
+                    <div class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
+                        <i class="fa-solid fa-circle-check text-4xl text-green-500 mb-2"></i>
+                        <h4 class="font-bold text-base mb-1">Pagamento Aprovado!</h4>
+                        <p class="text-xs">Seu pedido foi recebido com sucesso e logo será enviado.</p>
+                    </div>`;
+            } else if (data.qr_code || data.qr_code_base64) {
+                container.innerHTML = `
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 space-y-3">
+                        <i class="fa-brands fa-pix text-4xl text-green-500"></i>
+                        <h4 class="font-bold text-base">Pagamento via PIX Gerado</h4>
+                        <p class="text-xs text-gray-600">Escaneie o QR Code abaixo ou copie a chave Pix para finalizar:</p>
+                        
+                        ${data.qr_code_base64 ? `<img src="data:image/jpeg;base64,${data.qr_code_base64}" alt="QR Code Pix" class="w-48 h-48 mx-auto border rounded-lg">` : ''}
+                        
+                        <div class="pt-2">
+                            <input type="text" readonly value="${data.qr_code}" id="pixKeyInput" class="w-full text-[10px] p-2 border rounded bg-white font-mono text-center mb-2">
+                            <button onclick="navigator.clipboard.writeText('${data.qr_code}'); alert('Chave PIX copiada!');" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-xs transition">
+                                <i class="fa-solid fa-copy"></i> Copiar Chave PIX
+                            </button>
+                        </div>
+                    </div>`;
+            } else {
+                container.innerHTML = `
+                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800">
+                        <i class="fa-solid fa-clock text-4xl text-yellow-500 mb-2"></i>
+                        <h4 class="font-bold text-base mb-1">Pagamento Pendente / Em Análise</h4>
+                        <p class="text-xs">Status do pagamento: <strong>${data.status || 'pendente'}</strong>.</p>
+                    </div>`;
+            }
+        }
     </script>
 </body>
 </html>
