@@ -212,7 +212,7 @@
                         <div class="pt-2">
                             <label class="block text-[11px] font-semibold text-gray-600 mb-1">Calcular Frete</label>
                             <div class="flex gap-2">
-                                <input type="text" id="custCEP" placeholder="CEP (ex: 74500000)" maxlength="8" onblur="buscarEnderecoPorCEP()" class="flex-1 text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <input type="text" id="custCEP" placeholder="CEP (ex: 74500000)" maxlength="8" onblur="buscarCep(this.value)" onkeyup="if(this.value.replace(/\D/g, '').length === 8) buscarCep(this.value)" class="flex-1 text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                                 <button type="button" onclick="calcularFreteBackend()" class="bg-slate-900 text-white text-xs px-3 py-2.5 rounded-lg font-bold hover:bg-blue-600 transition">
                                     Calcular
                                 </button>
@@ -421,23 +421,44 @@
             document.getElementById('cartTotal').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
         }
 
-        // BUSCA ENDEREÇO VIA CEP
-        async function buscarEnderecoPorCEP() {
-            const cep = document.getElementById('custCEP').value.replace(/\D/g, '');
-            if (cep.length !== 8) return;
+        // BUSCA ENDEREÇO VIA CEP (ViaCEP)
+        async function buscarCep(valorCep) {
+            const cepLimpo = (valorCep || document.getElementById('custCEP').value).replace(/\D/g, '');
+            if (cepLimpo.length !== 8) return;
+
+            const streetInput = document.getElementById('custStreet');
+            const neighborhoodInput = document.getElementById('custNeighborhood');
+            const cityUFInput = document.getElementById('custCityUF');
+
+            streetInput.value = 'Buscando...';
+            neighborhoodInput.value = 'Buscando...';
+            cityUFInput.value = 'Buscando...';
 
             try {
-                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
                 const data = await res.json();
 
                 if (!data.erro) {
-                    document.getElementById('custStreet').value = data.logradouro || '';
-                    document.getElementById('custNeighborhood').value = data.bairro || '';
-                    document.getElementById('custCityUF').value = `${data.localidade} / ${data.uf}`;
+                    streetInput.value = data.logradouro || '';
+                    neighborhoodInput.value = data.bairro || '';
+                    cityUFInput.value = `${data.localidade} / ${data.uf}`;
+                    document.getElementById('custNumber').focus();
+                } else {
+                    alert('CEP não encontrado. Por favor, verifique o número.');
+                    streetInput.value = '';
+                    neighborhoodInput.value = '';
+                    cityUFInput.value = '';
                 }
             } catch (e) {
                 console.error("Erro na busca do ViaCEP:", e);
+                streetInput.value = '';
+                neighborhoodInput.value = '';
+                cityUFInput.value = '';
             }
+        }
+
+        function buscarEnderecoPorCEP() {
+            buscarCep(document.getElementById('custCEP').value);
         }
 
         // CÁLCULO DE FRETE VIA BACKEND
@@ -554,99 +575,77 @@
                         },
                     },
                     callbacks: {
-                        onReady: () => {
-                            console.log("Payment Brick pronto.");
-                        },
+                        onReady: () => {},
                         onSubmit: ({ selectedPaymentMethod, formData }) => {
                             return new Promise((resolve, reject) => {
-                                const payload = {
-                                    formData,
-                                    customer: {
-                                        name,
-                                        cpf,
-                                        email,
-                                        phone,
-                                        cep,
-                                        street,
-                                        number,
-                                        complement: document.getElementById('custComp').value,
-                                        neighborhood: document.getElementById('custNeighborhood').value,
-                                        cityUF: document.getElementById('custCityUF').value
-                                    },
-                                    items: cart.map(i => ({ id: i.id, quantity: 1 })),
-                                    shippingCost: selectedShippingCost,
-                                    shippingService: selectedShippingService
-                                };
-
-                                fetch("/api/pagamento", {
+                                fetch("/api/process_payment", {
                                     method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(payload),
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                        ...formData,
+                                        payer: {
+                                            ...formData.payer,
+                                            first_name: name.split(' ')[0],
+                                            last_name: name.split(' ').slice(1).join(' ') || name.split(' ')[0],
+                                            identification: {
+                                                type: 'CPF',
+                                                number: cpf.replace(/\D/g, '')
+                                            }
+                                        },
+                                        shipping: {
+                                            cost: selectedShippingCost,
+                                            service: selectedShippingService,
+                                            address: {
+                                                zip_code: cep,
+                                                street_name: street,
+                                                street_number: number,
+                                                neighborhood: document.getElementById('custNeighborhood').value,
+                                                city: document.getElementById('custCityUF').value
+                                            }
+                                        },
+                                        items: cart
+                                    }),
                                 })
                                 .then((response) => response.json())
-                                .then((data) => {
-                                    exibirResultadoPagamento(data);
+                                .then((result) => {
+                                    const paymentResultDiv = document.getElementById('paymentResult');
+                                    paymentResultDiv.classList.remove('hidden');
+
+                                    if (result.status === 'approved') {
+                                        paymentResultDiv.innerHTML = `<div class="p-3 bg-green-100 text-green-800 rounded-lg font-bold text-xs"><i class="fa-solid fa-circle-check"></i> Pagamento Aprovado com Sucesso!</div>`;
+                                    } else if (result.status === 'in_process' || result.status === 'pending') {
+                                        if (result.qr_code_base64) {
+                                            paymentResultDiv.innerHTML = `
+                                                <div class="space-y-2">
+                                                    <p class="text-xs font-bold text-slate-800">Escaneie o QR Code PIX para Pagar:</p>
+                                                    <img src="data:image/jpeg;base64,${result.qr_code_base64}" class="mx-auto w-48 h-48 border p-2 rounded-lg">
+                                                    <p class="text-[10px] text-gray-500 break-all bg-gray-100 p-2 rounded">${result.qr_code}</p>
+                                                </div>`;
+                                        } else {
+                                            paymentResultDiv.innerHTML = `<div class="p-3 bg-yellow-100 text-yellow-800 rounded-lg font-bold text-xs">Pagamento Pendente de Processamento.</div>`;
+                                        }
+                                    } else {
+                                        paymentResultDiv.innerHTML = `<div class="p-3 bg-red-100 text-red-800 rounded-lg font-bold text-xs">Falha no processamento do pagamento. Verifique os dados fornecidos.</div>`;
+                                    }
                                     resolve();
                                 })
                                 .catch((error) => {
-                                    console.error("Erro ao processar pagamento:", error);
-                                    alert("Falha no processamento do pagamento. Tente novamente.");
+                                    console.error("Erro no processamento:", error);
                                     reject();
                                 });
                             });
                         },
                         onError: (error) => {
-                            console.error("Erro no Brick Mercado Pago:", error);
+                            console.error("Erro no Brick:", error);
                         },
                     },
                 };
-
-                cardBrickController = await builder.create(
-                    'payment',
-                    'paymentBrick_container',
-                    settings
-                );
+                cardBrickController = await builder.create('payment', 'paymentBrick_container', settings);
             };
 
             renderPaymentBrick(bricksBuilder);
-        }
-
-        function exibirResultadoPagamento(data) {
-            const container = document.getElementById('paymentResult');
-            document.getElementById('paymentBrick_container').classList.add('hidden');
-            container.classList.remove('hidden');
-
-            if (data.status === 'approved') {
-                container.innerHTML = `
-                    <div class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
-                        <i class="fa-solid fa-circle-check text-4xl text-green-500 mb-2"></i>
-                        <h4 class="font-bold text-base mb-1">Pagamento Aprovado!</h4>
-                        <p class="text-xs">Seu pedido foi recebido com sucesso e logo será enviado.</p>
-                    </div>`;
-            } else if (data.qr_code || data.qr_code_base64) {
-                container.innerHTML = `
-                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-slate-800 space-y-3">
-                        <i class="fa-brands fa-pix text-4xl text-green-500"></i>
-                        <h4 class="font-bold text-base">Pagamento via PIX Gerado</h4>
-                        <p class="text-xs text-gray-600">Escaneie o QR Code abaixo ou copie a chave Pix para finalizar:</p>
-                        
-                        ${data.qr_code_base64 ? `<img src="data:image/jpeg;base64,${data.qr_code_base64}" alt="QR Code Pix" class="w-48 h-48 mx-auto border rounded-lg">` : ''}
-                        
-                        <div class="pt-2">
-                            <input type="text" readonly value="${data.qr_code}" id="pixKeyInput" class="w-full text-[10px] p-2 border rounded bg-white font-mono text-center mb-2">
-                            <button onclick="navigator.clipboard.writeText('${data.qr_code}'); alert('Chave PIX copiada!');" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-xs transition">
-                                <i class="fa-solid fa-copy"></i> Copiar Chave PIX
-                            </button>
-                        </div>
-                    </div>`;
-            } else {
-                container.innerHTML = `
-                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800">
-                        <i class="fa-solid fa-clock text-4xl text-yellow-500 mb-2"></i>
-                        <h4 class="font-bold text-base mb-1">Pagamento Pendente / Em Análise</h4>
-                        <p class="text-xs">Status do pagamento: <strong>${data.status || 'pendente'}</strong>.</p>
-                    </div>`;
-            }
         }
     </script>
 </body>
