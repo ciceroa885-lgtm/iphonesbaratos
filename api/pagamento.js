@@ -58,8 +58,8 @@ async function recalculateFreight(cep, cart, shippingId) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido.' });
   try {
-    const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    if (!token) return res.status(500).json({ erro: 'MERCADOPAGO_ACCESS_TOKEN não configurado.' });
+    const token = (process.env.MP_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN);
+    if (!token) return res.status(500).json({ erro: 'MP_ACCESS_TOKEN não configurado.' });
     const body = req.body || {};
     const cart = Array.isArray(body.cart) ? body.cart : [];
     if (!cart.length) throw new Error('Carrinho vazio.');
