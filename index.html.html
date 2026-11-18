@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Metadata -->
+    <title>iPhones Baratos | Loja Oficial de iPhones Novos e Seminovos</title>
+    <meta name="description" content="Compre iPhones novos lacrados e seminovos em Goiânia com o melhor preço do Brasil. Garantia de até 1 ano, envio rápido e pagamento em até 12x no cartão ou PIX.">
+    <meta name="keywords" content="iPhone barato, iPhone novos, iPhone seminovo, Goiânia, comprar iPhone, Apple">
+    <meta name="author" content="IPHONESBARATOS">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph (WhatsApp / Redes Sociais) -->
+    <meta property="og:title" content="iPhones Baratos | Loja Oficial">
+    <meta property="og:description" content="Os melhores preços em iPhones novos e seminovos com garantia. Confira nosso catálogo!">
+    <meta property="og:url" content="https://iphonesbaratos.com.br">
+    <meta property="og:type" content="website">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mercado Pago Checkout Bricks -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f7; }
+        .apple-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); }
+        
+        /* FAIXA DO VÍDEO BANNER HERO */
+        .hero-container {
+            width: 100%;
+            height: 380px;
+            background-color: #000000;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .hero-container {
+                height: 260px;
+            }
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 apple-glass border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="flex items-center gap-2 group">
+                    <i class="fa-brands fa-apple text-2xl group-hover:scale-105 transition-transform"></i>
+                    <span class="font-bold text-lg tracking-tight text-slate-900">IPHONESBARATOS</span>
+                </a>
+
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <input type="search" id="searchInput" autocomplete="off" oninput="filterProducts()" placeholder="Buscar iPhone 15, 16 Pro Max, Lacrado..." class="w-full bg-gray-100 border border-gray-200 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleCart()" class="relative p-2 text-gray-700 hover:text-blue-600 transition flex items-center gap-2">
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <span id="cartCount" class="bg-blue-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="border-t border-gray-100 bg-white/50 backdrop-blur-md overflow-x-auto hide-scrollbar py-2.5">
+            <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 text-xs font-medium whitespace-nowrap">
+                <button onclick="filterCategory('all')" class="text-blue-600 font-semibold hover:underline">Todos os iPhones</button>
+                <button onclick="filterCategory('lacrados')" class="text-gray-600 hover:text-slate-900">iPhones Lacrados (1 Ano Garantia)</button>
+                <button onclick="filterCategory('seminovos')" class="text-gray-600 hover:text-slate-900">iPhones Seminovos Premium</button>
+                <button onclick="filterCategory('cpo')" class="text-gray-600 hover:text-slate-900">Linha CPO / Recondicionados</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- BANNER HERO COM REPRODUÇÃO AUTOMÁTICA AO ROLAR / CLICAR -->
+    <section class="hero-container">
+        <video id="heroVideo" autoplay muted loop playsinline preload="auto" class="hero-video">
+            <source src="assets/video_hero.mp4" type="video/mp4">
+            Seu navegador não suporta vídeos HTML5.
+        </video>
+    </section>
+
+    <!-- DIFERENCIAIS -->
+    <section class="bg-white border-b border-gray-200 py-6">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div class="p-3">
+                <i class="fa-solid fa-shield-halved text-2xl text-blue-600 mb-2"></i>
+                <h4 class="font-bold text-sm">Garantia Oficial</h4>
+                <p class="text-xs text-gray-500">1 Ano para aparelhos Lacrados</p>
+            </div>
+            <div class="p-3">
+                <i class="fa-solid fa-truck-fast text-2xl text-blue-600 mb-2"></i>
+                <h4 class="font-bold text-sm">Entrega Garantida</h4>
+                <p class="text-xs text-gray-500">Envio via Sedex / Correios / Loggi</p>
+            </div>
+            <div class="p-3">
+                <i class="fa-solid fa-credit-card text-2xl text-blue-600 mb-2"></i>
+                <h4 class="font-bold text-sm">Até 12x no Cartão</h4>
+                <p class="text-xs text-gray-500">Aceitamos Cartão, PIX e Boleto</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO DE PRODUTOS -->
+    <main id="catalogo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight text-slate-900">Nossos iPhones</h2>
+                <p class="text-sm text-gray-500">Escolha o seu iPhone novo ou seminovo com o melhor preço do Brasil</p>
+            </div>
+        </div>
+
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-slate-900 text-gray-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-white font-bold text-lg mb-3">IPHONESBARATOS.COM.BR</h3>
+                <p class="text-xs leading-relaxed text-gray-400">Sua loja especializada na venda de iPhones novos lacrados e seminovos de altíssima qualidade com envio seguro para todo o Brasil.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-sm mb-3">Endereço de Atendimento</h4>
+                <p class="text-xs leading-relaxed">
+                    <i class="fa-solid fa-location-dot text-blue-500 mr-1.5"></i>
+                    Rua José Bonifácio, Nº 215<br>
+                    Setor Campinas - Goiânia - GO<br>
+                    CEP: 74500-000
+                </p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold text-sm mb-3">Formas de Pagamento Aceitas</h4>
+                <p class="text-xs mb-3">PIX à vista, Boleto Bancário ou parcelado no Cartão de Crédito em até 12x.</p>
+                <div class="flex flex-wrap gap-3 text-2xl text-gray-300">
+                    <i class="fa-brands fa-pix text-green-400"></i>
+                    <i class="fa-brands fa-cc-visa"></i>
+                    <i class="fa-brands fa-cc-mastercard"></i>
+                    <i class="fa-solid fa-barcode"></i>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-slate-800 text-center text-xs text-gray-500 space-y-2">
+            <div>
+                <a href="https://totuscomunicacao.com.br/" target="_blank" rel="noopener noreferrer" class="hover:text-green-500 transition-colors font-medium">
+                    Feito pela Totus Comunicação | Agência de Marketing
+                </a>
+            </div>
+            <div>
+                © 2026 IPHONESBARATOS.COM.BR - Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL CARRINHO / CHECKOUT -->
+    <div id="cartModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="toggleCart()"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-full max-w-lg bg-white shadow-2xl flex flex-col z-10">
+            <div class="p-4 border-b flex items-center justify-between bg-gray-50">
+                <button onclick="toggleCart()" class="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar / Comprar mais
+                </button>
+                <h3 class="font-bold text-base text-slate-900">Seu Carrinho</h3>
+                <button onclick="toggleCart()" class="text-gray-400 hover:text-slate-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="cartContainer" class="flex-1 overflow-y-auto p-4">
+                <div id="cartItems" class="space-y-3 mb-4"></div>
+
+                <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-4 rounded-xl">
+                    <div id="cartSummary" class="space-y-1 text-sm">
+                        <div class="flex justify-between text-sm"><span>Subtotal:</span><span id="cartSubtotal">R$ 0,00</span></div>
+                        <div class="flex justify-between text-sm"><span>Frete:</span><span id="cartShipping">A calcular</span></div>
+                        <div class="flex justify-between font-bold text-lg text-slate-900 border-t pt-2 mt-2">
+                            <span>Total:</span><span id="cartTotal">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <form id="checkoutForm" onsubmit="event.preventDefault(); calculateShipping();" class="space-y-3">
+                        <div class="space-y-2 pt-2 border-t">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente</h4>
+                            <input type="text" id="custName" required placeholder="Nome Completo" autocomplete="name" class="w-full text-xs p-2.5 border rounded-lg">
+                            <input type="text" id="custCPF" required placeholder="CPF (apenas números)" inputmode="numeric" autocomplete="off" class="w-full text-xs p-2.5 border rounded-lg">
+                            <input type="email" id="custEmail" required placeholder="Seu E-mail" autocomplete="email" class="w-full text-xs p-2.5 border rounded-lg">
+                            <input type="tel" id="custPhone" required placeholder="WhatsApp / Telefone" autocomplete="tel" class="w-full text-xs p-2.5 border rounded-lg">
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t">
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Entrega</h4>
+                                <span class="text-[10px] text-gray-400">Calcule antes de pagar</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="custCEP" required placeholder="CEP" inputmode="numeric" maxlength="9" autocomplete="postal-code" class="flex-1 text-xs p-2.5 border rounded-lg">
+                                <button type="button" id="btnCalcFrete" onclick="calculateShipping()" class="bg-slate-900 text-white px-4 rounded-lg text-xs font-bold hover:bg-blue-600">Calcular frete</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" id="custStreet" required placeholder="Rua" autocomplete="street-address" class="col-span-2 text-xs p-2.5 border rounded-lg">
+                                <input type="text" id="custNumber" required placeholder="Número" autocomplete="address-line2" class="text-xs p-2.5 border rounded-lg">
+                            </div>
+                            <input type="text" id="custComplement" placeholder="Complemento (opcional)" class="w-full text-xs p-2.5 border rounded-lg">
+                            <input type="text" id="custNeighborhood" required placeholder="Bairro" autocomplete="address-level3" class="w-full text-xs p-2.5 border rounded-lg">
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" id="custCity" required placeholder="Cidade" autocomplete="address-level2" class="col-span-2 text-xs p-2.5 border rounded-lg">
+                                <input type="text" id="custState" required placeholder="UF" maxlength="2" autocomplete="address-level1" class="text-xs p-2.5 border rounded-lg uppercase">
+                            </div>
+                        </div>
+
+                        <div id="shippingBlock" class="hidden space-y-2 pt-2 border-t">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Escolha o envio</h4><span id="shippingDestination" class="text-[10px] text-blue-600"></span>
+                            <div id="shippingOptions" class="space-y-2"></div>
+                        </div>
+
+                        <div id="paymentBlock" class="hidden space-y-2 pt-2 border-t">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Pagamento seguro</h4>
+                                <span class="text-[10px] text-gray-400">Mercado Pago</span>
+                            </div>
+                            <button type="button" id="retryPaymentButton" onclick="renderPaymentBrick()" class="w-full bg-slate-900 text-white rounded-lg py-3 text-sm font-semibold">Carregar opções de pagamento</button>
+                            <div id="paymentBrick_container"></div>
+                            <p id="paymentError" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2"></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL DE RESULTADO DO PAGAMENTO -->
+    <div id="paymentResultModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePaymentResult()"></div>
+        <div class="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl p-5">
+            <button type="button" onclick="closePaymentResult()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-900 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <div id="paymentResultContent"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DA LOJA -->
+    <script>
+        const heroVideo = document.getElementById('heroVideo');
+        if (heroVideo) {
+            const playVideo = () => { if (heroVideo.paused) heroVideo.play().catch(() => {}); };
+            window.addEventListener('scroll', playVideo, { once: true });
+            window.addEventListener('touchstart', playVideo, { once: true });
+            window.addEventListener('click', playVideo, { once: true });
+        }
+
+        const products = [
+            { id: 1, name: "iPhone 18 Pro Max Titanio Preto 256GB", price: 12150, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iPhone 18 Pro Max Titanio Preto Black Titanium (1).png" },
+            { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 10185, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Titanio Branco White Titanium.png" },
+            { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Titanio Azul.png" },
+            { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Black.png" },
+            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 17 pro branco.png" },
+            { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 pro verde azul.png" },
+            { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 16 pro rosa.png" },
+            { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus ultramarinho.png" },
+            { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus Preto.png" },
+            { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 pro Verde.png" },
+            { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Azul.png" },
+            { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Rosa.jpg" },
+            { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 plus amarelo.jpg" },
+            { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Vermelho.jpg" },
+            { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Azul.jpg" },
+            { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/iphone14-meia-noite (1).jpg" },
+            { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/iphone13-azul (1).png" },
+            { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Rosa.png" },
+            { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 verde.png" },
+            { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Estelar.png" },
+            { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 meia noite.png" },
+            { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-verde (1).png" },
+            { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-Roxo (1).png" },
+            { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-branco (1).png" },
+            { id: 25, name: "iPhone 11 Preto 256GB", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 11 preto.png" }
+        ];
+
+        // ATENÇÃO: confirme peso/dimensões da embalagem real antes de produção.
+        // O backend usa os mesmos valores para impedir manipulação do frete no navegador.
+        const SHIPPING_DEFAULTS = { weight: 0.8, width: 18, height: 10, length: 28 };
+        let cart = [];
+        let selectedShipping = null;
+        let paymentBrickController = null;
+        let mpPublicKey = null;
+
+        const brl = value => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const cleanCep = value => String(value || '').replace(/\D/g, '').slice(0, 8);
+
+        function renderProducts(items) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = items.map(p => `
+                <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <div class="relative bg-gray-50 rounded-xl p-4 mb-4 text-center h-52 flex items-center justify-center">
+                            <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded ${p.category === 'lacrados' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">${p.warranty}</span>
+                            <img src="${p.img}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
+                        <div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>
+                    </div>
+                    <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
+                </div>`).join('');
+        }
+        function filterCategory(cat) { renderProducts(cat === 'all' ? products : products.filter(p => p.category === cat)); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase(); renderProducts(products.filter(p => p.name.toLowerCase().includes(q))); }
+
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id);
+            if (!prod) return;
+            cart.push({ ...prod, quantity: 1 });
+            resetCheckoutState();
+            updateCartUI();
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+        function removeFromCart(idx) { cart.splice(idx, 1); resetCheckoutState(); updateCartUI(); }
+        function updateCartUI() {
+            document.getElementById('cartCount').innerText = cart.length;
+            const container = document.getElementById('cartItems');
+            if (!cart.length) {
+                container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i><p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p></div>';
+            } else {
+                container.innerHTML = cart.map((item, idx) => `<div class="flex items-center justify-between border border-gray-200 bg-white p-3 rounded-xl shadow-sm"><div class="flex-1 pr-2"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5><p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price)}</p></div><button onclick="removeFromCart(${idx})" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-trash-can"></i> Excluir</button></div>`).join('');
+            }
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            document.getElementById('cartSubtotal').innerText = `R$ ${brl(subtotal)}`;
+            document.getElementById('cartShipping').innerText = selectedShipping ? `R$ ${brl(selectedShipping.price)}` : 'A calcular';
+            document.getElementById('cartTotal').innerText = `R$ ${brl(subtotal + (selectedShipping?.price || 0))}`;
+        }
+        function toggleCart() { updateCartUI(); document.getElementById('cartModal').classList.toggle('hidden'); }
+        function resetCheckoutState() {
+            selectedShipping = null;
+            document.getElementById('shippingBlock').classList.add('hidden');
+            document.getElementById('paymentBlock').classList.add('hidden');
+            document.getElementById('retryPaymentButton').classList.remove('hidden');
+            document.getElementById('shippingOptions').innerHTML = '';
+            const shippingDestination = document.getElementById('shippingDestination');
+            if (shippingDestination) shippingDestination.innerText = '';
+            document.getElementById('cartShipping').innerText = 'A calcular';
+            if (paymentBrickController) { try { paymentBrickController.unmount(); } catch (_) {} paymentBrickController = null; }
+        }
+
+        async function lookupCep() {
+            const input = document.getElementById('custCEP');
+            const cep = cleanCep(input.value);
+            if (cep.length !== 8) return;
+            input.value = `${cep.slice(0,5)}-${cep.slice(5)}`;
+            try {
+                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await r.json();
+                if (data.erro) throw new Error('CEP não encontrado.');
+                document.getElementById('custStreet').value = data.logradouro || '';
+                document.getElementById('custNeighborhood').value = data.bairro || '';
+                document.getElementById('custCity').value = data.localidade || '';
+                document.getElementById('custState').value = data.uf || '';
+            } catch (e) { alert(e.message || 'Não foi possível consultar o CEP.'); }
+        }
+
+        function customerData() {
+            return {
+                name: document.getElementById('custName').value.trim(),
+                cpf: document.getElementById('custCPF').value.replace(/\D/g, ''),
+                email: document.getElementById('custEmail').value.trim(),
+                phone: document.getElementById('custPhone').value.trim(),
+                cep: cleanCep(document.getElementById('custCEP').value),
+                address: {
+                    street: document.getElementById('custStreet').value.trim(),
+                    number: document.getElementById('custNumber').value.trim(),
+                    complement: document.getElementById('custComplement').value.trim(),
+                    neighborhood: document.getElementById('custNeighborhood').value.trim(),
+                    city: document.getElementById('custCity').value.trim(),
+                    state: document.getElementById('custState').value.trim().toUpperCase()
+                }
+            };
+        }
+
+        async function calculateShipping() {
+            if (!cart.length) return alert('Adicione um produto ao carrinho.');
+            const c = customerData();
+            if (c.cep.length !== 8) return alert('Digite um CEP válido.');
+            const btn = document.getElementById('btnCalcFrete');
+            btn.disabled = true; btn.innerText = 'Calculando...';
+            try {
+                const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitary_value: item.price, ...SHIPPING_DEFAULTS }));
+                const r = await fetch('/api/frete', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }, body: JSON.stringify({ cep: c.cep, products: productsForShipping, requestId: crypto.randomUUID() }) });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data.erro || 'Não foi possível calcular o frete.');
+                if (!data.options?.length) throw new Error('Nenhuma opção de frete disponível para este CEP.');
+                selectedShipping = null;
+                // Crie os botões com eventos reais, sem inserir JavaScript no HTML.
+                const optionsContainer = document.getElementById('shippingOptions');
+                optionsContainer.replaceChildren();
+                data.options.forEach(o => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'shipping-option w-full text-left border rounded-xl p-3 bg-white hover:border-blue-500 transition flex justify-between items-center';
+                    const description = document.createElement('span');
+                    const title = document.createElement('strong');
+                    title.className = 'block text-xs';
+                    title.textContent = `${o.company ? `${o.company} - ` : ''}${o.name}`;
+                    const delivery = document.createElement('small');
+                    delivery.className = 'text-gray-500';
+                    delivery.textContent = o.deliveryTime ? `até ${o.deliveryTime} dias úteis` : 'Prazo conforme transportadora';
+                    const amount = document.createElement('strong');
+                    amount.textContent = `R$ ${brl(o.price)}`;
+                    description.append(title, delivery);
+                    button.append(description, amount);
+                    button.addEventListener('click', () => selectShipping(button, o.id, o.price, o.name, o.deliveryTime));
+                    optionsContainer.appendChild(button);
+                });
+                document.getElementById('shippingDestination').innerText = `CEP destino: ${c.cep.slice(0,5)}-${c.cep.slice(5)}`;
+                document.getElementById('shippingBlock').classList.remove('hidden');
+                document.getElementById('paymentBlock').classList.add('hidden');
+                updateCartUI();
+                document.getElementById('shippingBlock').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (e) { alert(e.message || 'Erro ao calcular frete.'); }
+            finally { btn.disabled = false; btn.innerText = 'Calcular frete'; }
+        }
+
+        async function selectShipping(button, id, price, name, deliveryTime) {
+            selectedShipping = { id, price: Number(price), name, deliveryTime };
+            document.querySelectorAll('.shipping-option').forEach(el => el.classList.remove('border-blue-600', 'bg-blue-50'));
+            button.classList.add('border-blue-600', 'bg-blue-50');
+            updateCartUI();
+            await renderPaymentBrick();
+        }
+
+        async function renderPaymentBrick() {
+            const error = document.getElementById('paymentError');
+            error.classList.add('hidden'); error.innerText = '';
+            const c = customerData();
+            if (!selectedShipping) return;
+            document.getElementById('paymentBlock').classList.remove('hidden');
+            const missing = [];
+            if (!c.name) missing.push('nome');
+            if (!/^\d{11}$/.test(c.cpf)) missing.push('CPF com 11 dígitos');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) missing.push('e-mail válido');
+            if (!c.phone) missing.push('telefone');
+            if (c.cep.length !== 8) missing.push('CEP');
+            if (!c.address.street || !c.address.number || !c.address.neighborhood || !c.address.city || !c.address.state) missing.push('endereço completo');
+            if (missing.length) {
+                error.innerText = 'Para carregar o pagamento, preencha: ' + missing.join(', ') + '.';
+                error.classList.remove('hidden');
+                return;
+            }
+            const retryButton = document.getElementById('retryPaymentButton');
+            retryButton.disabled = true;
+            retryButton.innerText = 'Carregando pagamento...';
+            try {
+            if (!mpPublicKey) {
+                const response = await fetch('/api/config', { cache: 'no-store' });
+                const cfg = await response.json();
+                if (!response.ok || !cfg.publicKey) throw new Error(cfg.erro || 'Chave pública do Mercado Pago indisponível.');
+                mpPublicKey = cfg.publicKey;
+            }
+            if (paymentBrickController) { try { paymentBrickController.unmount(); } catch (_) {} }
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const total = Number((subtotal + selectedShipping.price).toFixed(2));
+            const mp = new MercadoPago(mpPublicKey, { locale: 'pt-BR' });
+            const bricksBuilder = mp.bricks();
+            const settings = {
+                initialization: {
+                    amount: total,
+                    payer: {
+                        email: c.email,
+                        identification: { type: 'CPF', number: c.cpf },
+                        firstName: (c.name.trim().split(/\s+/)[0] || ''),
+                        lastName: (c.name.trim().split(/\s+/).slice(1).join(' ') || ''),
+                        address: {
+                            zipCode: c.cep,
+                            federalUnit: c.address.state,
+                            city: c.address.city,
+                            neighborhood: c.address.neighborhood,
+                            streetName: c.address.street,
+                            streetNumber: c.address.number,
+                            complement: c.address.complement || ''
+                        }
+                    }
+                },
+                customization: {
+                    paymentMethods: { creditCard: 'all', ticket: 'all', bankTransfer: 'pix', minInstallments: 1, maxInstallments: 12 },
+                    visual: { style: { theme: 'default' } }
+                },
+                callbacks: {
+                    onReady: () => {},
+                    onSubmit: ({ formData }) => {
+                        return new Promise(async (resolve, reject) => {
+                            const paymentError = document.getElementById('paymentError');
+                            paymentError.classList.add('hidden');
+                            try {
+                                const response = await fetch('/api/pagamento', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        cart: cart.map(item => ({ id: item.id, quantity: item.quantity })),
+                                        customer: c,
+                                        shippingId: selectedShipping.id,
+                                        payment: formData,
+                                        idempotencyKey: crypto.randomUUID()
+                                    })
+                                });
+                                const data = await response.json();
+                                if (!response.ok || !data.sucesso) throw new Error(data.erro || 'Pagamento não processado.');
+                                showPaymentResult(data);
+                                resolve();
+                            } catch (e) {
+                                paymentError.innerText = e.message || 'Erro ao processar pagamento.';
+                                paymentError.classList.remove('hidden');
+                                reject(e);
+                            }
+                        });
+                    },
+                    onError: (error) => {
+                        console.error('Mercado Pago Brick:', error);
+                        paymentError.innerText = 'Não foi possível carregar o pagamento. Atualize a página e tente novamente.';
+                        paymentError.classList.remove('hidden');
+                    }
+                }
+            };
+            document.getElementById('paymentBlock').classList.remove('hidden');
+            paymentBrickController = await bricksBuilder.create('payment', 'paymentBrick_container', settings);
+            retryButton.classList.add('hidden');
+            } catch (e) {
+                console.error('Falha ao iniciar Mercado Pago:', e);
+                error.innerText = e.message || 'Não foi possível carregar o Mercado Pago.';
+                error.classList.remove('hidden');
+            } finally {
+                retryButton.disabled = false;
+                retryButton.innerText = 'Tentar carregar pagamento novamente';
+            }
+        }
+
+        function closePaymentResult() {
+            const modal = document.getElementById('paymentResultModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function openPaymentResult(html) {
+            const modal = document.getElementById('paymentResultModal');
+            document.getElementById('paymentResultContent').innerHTML = html;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        async function copyPixCode() {
+            const code = document.getElementById('pixCode')?.value || '';
+            if (!code) return;
+            try {
+                await navigator.clipboard.writeText(code);
+                const btn = document.getElementById('copyPixBtn');
+                if (btn) { btn.innerText = 'PIX copiado!'; setTimeout(() => btn.innerText = 'Copiar PIX Copia e Cola', 1800); }
+            } catch (_) {
+                const el = document.getElementById('pixCode');
+                el.focus(); el.select(); document.execCommand('copy');
+            }
+        }
+
+        function showPaymentResult(data) {
+            if (data.qr_code_base64 || data.qr_code) {
+                openPaymentResult(`
+                    <div class="text-center pt-2">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-green-100 text-green-600 flex items-center justify-center text-2xl mb-3"><i class="fa-brands fa-pix"></i></div>
+                        <h3 class="text-xl font-extrabold text-slate-900">PIX gerado</h3>
+                        <p class="text-xs text-gray-500 mt-1">Escaneie o QR Code ou copie o código abaixo.</p>
+                        ${data.qr_code_base64 ? `<img src="data:image/png;base64,${data.qr_code_base64}" class="w-60 h-60 object-contain mx-auto my-4 border rounded-xl p-2" alt="QR Code PIX">` : ''}
+                        <textarea id="pixCode" readonly class="w-full text-[11px] p-3 border rounded-xl bg-gray-50 h-24">${data.qr_code || ''}</textarea>
+                        <button id="copyPixBtn" type="button" onclick="copyPixCode()" class="w-full mt-3 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm">Copiar PIX Copia e Cola</button>
+                        <p class="text-[11px] text-gray-500 mt-3">Depois de pagar, aguarde a confirmação do Mercado Pago.</p>
+                    </div>`);
+                return;
+            }
+
+            if (data.ticket_url) {
+                openPaymentResult(`
+                    <div class="pt-2">
+                        <div class="text-center">
+                            <div class="w-14 h-14 mx-auto rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-2xl mb-3"><i class="fa-solid fa-barcode"></i></div>
+                            <h3 class="text-xl font-extrabold text-slate-900">Boleto gerado</h3>
+                            <p class="text-xs text-gray-500 mt-1">O boleto está pronto. Você pode visualizar, imprimir ou baixar na página do Mercado Pago.</p>
+                        </div>
+                        <div class="mt-4 border rounded-xl overflow-hidden bg-gray-50">
+                            <iframe src="${data.ticket_url}" title="Boleto Mercado Pago" class="w-full h-[480px]" loading="lazy"></iframe>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3">
+                            <a href="${data.ticket_url}" target="_blank" rel="noopener noreferrer" class="text-center bg-slate-900 hover:bg-blue-600 text-white font-bold py-3 rounded-xl text-xs">Abrir boleto</a>
+                            <button type="button" onclick="window.open('${data.ticket_url}', '_blank', 'noopener,noreferrer');" class="bg-white border border-gray-300 hover:border-slate-900 text-slate-900 font-bold py-3 rounded-xl text-xs">Imprimir / Baixar</button>
+                        </div>
+                        ${data.digitableLine ? `<div class="mt-4"><label class="text-[11px] font-bold text-gray-500">Linha digitável</label><input readonly value="${data.digitableLine}" class="w-full mt-1 text-[11px] p-2.5 border rounded-lg bg-gray-50"></div>` : ''}
+                    </div>`);
+                return;
+            }
+
+            if (data.status === 'approved') {
+                openPaymentResult(`<div class="text-center py-6"><div class="w-16 h-16 mx-auto rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl mb-3"><i class="fa-solid fa-check"></i></div><h3 class="text-xl font-extrabold">Pagamento aprovado!</h3><p class="text-xs text-gray-500 mt-2">Pedido recebido. Código: ${data.paymentId}</p></div>`);
+                return;
+            }
+
+            openPaymentResult(`<div class="text-center py-6"><div class="w-16 h-16 mx-auto rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-3xl mb-3"><i class="fa-solid fa-hourglass-half"></i></div><h3 class="text-xl font-extrabold">Pagamento em análise</h3><p class="text-xs text-gray-500 mt-2">Status: ${data.status || 'aguardando'}</p></div>`);
+        }
+
+        document.getElementById('custCEP').addEventListener('blur', lookupCep);
+        document.getElementById('custCEP').addEventListener('input', e => {
+            const c = cleanCep(e.target.value); e.target.value = c.length > 5 ? `${c.slice(0,5)}-${c.slice(5)}` : c;
+            resetCheckoutState(); updateCartUI();
+        });
+        ['custName', 'custCPF', 'custEmail', 'custPhone', 'custStreet', 'custNumber', 'custComplement', 'custNeighborhood', 'custCity', 'custState'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                if (!selectedShipping) return;
+                if (paymentBrickController) {
+                    try { paymentBrickController.unmount(); } catch (_) {}
+                    paymentBrickController = null;
+                }
+                document.getElementById('retryPaymentButton').classList.remove('hidden');
+                const error = document.getElementById('paymentError');
+                error.innerText = 'Dados alterados. Clique em Carregar opções de pagamento para atualizar.';
+                error.classList.remove('hidden');
+            });
+        });
+        renderProducts(products);
+    </script>
+</body>
+</html>
