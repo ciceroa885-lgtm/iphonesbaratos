@@ -409,7 +409,27 @@
                 if (!r.ok) throw new Error(data.erro || 'Não foi possível calcular o frete.');
                 if (!data.options?.length) throw new Error('Nenhuma opção de frete disponível para este CEP.');
                 selectedShipping = null;
-                document.getElementById('shippingOptions').innerHTML = data.options.map((o, i) => `<button type="button" onclick="selectShipping(this, ${o.id}, ${o.price}, ${JSON.stringify(o.name)}, ${o.deliveryTime})" class="shipping-option w-full text-left border rounded-xl p-3 bg-white hover:border-blue-500 transition flex justify-between items-center"><span><strong class="block text-xs">${o.company ? `${o.company} - ` : ''}${o.name}</strong><small class="text-gray-500">${o.deliveryTime ? `até ${o.deliveryTime} dias úteis` : 'Prazo conforme transportadora'}</small></span><strong>R$ ${brl(o.price)}</strong></button>`).join('');
+                // Crie os botões com eventos reais, sem inserir JavaScript no HTML.
+                const optionsContainer = document.getElementById('shippingOptions');
+                optionsContainer.replaceChildren();
+                data.options.forEach(o => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'shipping-option w-full text-left border rounded-xl p-3 bg-white hover:border-blue-500 transition flex justify-between items-center';
+                    const description = document.createElement('span');
+                    const title = document.createElement('strong');
+                    title.className = 'block text-xs';
+                    title.textContent = `${o.company ? `${o.company} - ` : ''}${o.name}`;
+                    const delivery = document.createElement('small');
+                    delivery.className = 'text-gray-500';
+                    delivery.textContent = o.deliveryTime ? `até ${o.deliveryTime} dias úteis` : 'Prazo conforme transportadora';
+                    const amount = document.createElement('strong');
+                    amount.textContent = `R$ ${brl(o.price)}`;
+                    description.append(title, delivery);
+                    button.append(description, amount);
+                    button.addEventListener('click', () => selectShipping(button, o.id, o.price, o.name, o.deliveryTime));
+                    optionsContainer.appendChild(button);
+                });
                 document.getElementById('shippingDestination').innerText = `CEP destino: ${c.cep.slice(0,5)}-${c.cep.slice(5)}`;
                 document.getElementById('shippingBlock').classList.remove('hidden');
                 document.getElementById('paymentBlock').classList.add('hidden');
