@@ -240,6 +240,7 @@
                                 <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Pagamento seguro</h4>
                                 <span class="text-[10px] text-gray-400">Mercado Pago</span>
                             </div>
+                            <button type="button" id="retryPaymentButton" onclick="renderPaymentBrick()" class="w-full bg-slate-900 text-white rounded-lg py-3 text-sm font-semibold">Carregar opções de pagamento</button>
                             <div id="paymentBrick_container"></div>
                             <p id="paymentError" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg p-2"></p>
                         </div>
@@ -353,6 +354,7 @@
             selectedShipping = null;
             document.getElementById('shippingBlock').classList.add('hidden');
             document.getElementById('paymentBlock').classList.add('hidden');
+            document.getElementById('retryPaymentButton').classList.remove('hidden');
             document.getElementById('shippingOptions').innerHTML = '';
             const shippingDestination = document.getElementById('shippingDestination');
             if (shippingDestination) shippingDestination.innerText = '';
@@ -429,9 +431,28 @@
             const error = document.getElementById('paymentError');
             error.classList.add('hidden'); error.innerText = '';
             const c = customerData();
-            if (!selectedShipping || !c.email || !c.cpf || !c.name || !c.address.street || !c.address.number || !c.address.neighborhood || !c.address.city || !c.address.state) return;
+            if (!selectedShipping) return;
+            document.getElementById('paymentBlock').classList.remove('hidden');
+            const missing = [];
+            if (!c.name) missing.push('nome');
+            if (!/^\d{11}$/.test(c.cpf)) missing.push('CPF com 11 dígitos');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email)) missing.push('e-mail válido');
+            if (!c.phone) missing.push('telefone');
+            if (c.cep.length !== 8) missing.push('CEP');
+            if (!c.address.street || !c.address.number || !c.address.neighborhood || !c.address.city || !c.address.state) missing.push('endereço completo');
+            if (missing.length) {
+                error.innerText = 'Para carregar o pagamento, preencha: ' + missing.join(', ') + '.';
+                error.classList.remove('hidden');
+                return;
+            }
+            const retryButton = document.getElementById('retryPaymentButton');
+            retryButton.disabled = true;
+            retryButton.innerText = 'Carregando pagamento...';
+            try {
             if (!mpPublicKey) {
-                const cfg = await fetch('/api/config').then(r => r.json());
+                const response = await fetch('/api/config', { cache: 'no-store' });
+                const cfg = await response.json();
+                if (!response.ok || !cfg.publicKey) throw new Error(cfg.erro || 'Chave pública do Mercado Pago indisponível.');
                 mpPublicKey = cfg.publicKey;
             }
             if (paymentBrickController) { try { paymentBrickController.unmount(); } catch (_) {} }
@@ -500,6 +521,15 @@
             };
             document.getElementById('paymentBlock').classList.remove('hidden');
             paymentBrickController = await bricksBuilder.create('payment', 'paymentBrick_container', settings);
+            retryButton.classList.add('hidden');
+            } catch (e) {
+                console.error('Falha ao iniciar Mercado Pago:', e);
+                error.innerText = e.message || 'Não foi possível carregar o Mercado Pago.';
+                error.classList.remove('hidden');
+            } finally {
+                retryButton.disabled = false;
+                retryButton.innerText = 'Tentar carregar pagamento novamente';
+            }
         }
 
         function closePaymentResult() {
@@ -576,9 +606,19 @@
             const c = cleanCep(e.target.value); e.target.value = c.length > 5 ? `${c.slice(0,5)}-${c.slice(5)}` : c;
             resetCheckoutState(); updateCartUI();
         });
-        document.getElementById('custName').addEventListener('input', resetCheckoutState);
-        document.getElementById('custCPF').addEventListener('input', resetCheckoutState);
-        document.getElementById('custEmail').addEventListener('input', resetCheckoutState);
+        ['custName', 'custCPF', 'custEmail', 'custPhone', 'custStreet', 'custNumber', 'custComplement', 'custNeighborhood', 'custCity', 'custState'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                if (!selectedShipping) return;
+                if (paymentBrickController) {
+                    try { paymentBrickController.unmount(); } catch (_) {}
+                    paymentBrickController = null;
+                }
+                document.getElementById('retryPaymentButton').classList.remove('hidden');
+                const error = document.getElementById('paymentError');
+                error.innerText = 'Dados alterados. Clique em Carregar opções de pagamento para atualizar.';
+                error.classList.remove('hidden');
+            });
+        });
         renderProducts(products);
     </script>
 </body>
