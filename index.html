@@ -190,6 +190,7 @@
 
             <div id="cartContainer" class="flex-1 overflow-y-auto p-4">
                 <div id="cartItems" class="space-y-3 mb-4"></div>
+                <button type="button" id="checkoutStartButton" onclick="startCheckout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl mb-4">Finalizar compra</button>
 
                 <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-4 rounded-xl">
                     <div id="cartSummary" class="space-y-1 text-sm">
@@ -200,7 +201,7 @@
                         </div>
                     </div>
 
-                    <form id="checkoutForm" onsubmit="event.preventDefault(); calculateShipping();" class="space-y-3">
+                    <form id="checkoutForm" class="hidden space-y-3" onsubmit="event.preventDefault(); calculateShipping();">
                         <div class="space-y-2 pt-2 border-t">
                             <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500">Dados do Cliente</h4>
                             <input type="text" id="custName" required placeholder="Nome Completo" autocomplete="name" class="w-full text-xs p-2.5 border rounded-lg">
@@ -301,7 +302,33 @@
         // ATENÇÃO: confirme peso/dimensões da embalagem real antes de produção.
         // O backend usa os mesmos valores para impedir manipulação do frete no navegador.
         const SHIPPING_DEFAULTS = { weight: 0.8, width: 18, height: 10, length: 28 };
+        const CART_STORAGE_KEY = 'ipb_cart_v1';
         let cart = [];
+        let checkoutStarted = false;
+        try {
+            const stored = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+            if (Array.isArray(stored)) {
+                cart = stored.filter(x => Number.isInteger(x.id) && Number.isInteger(x.quantity) && x.quantity > 0)
+                    .reduce((acc, x) => {
+                        const p = products.find(p => p.id === x.id);
+                        if (p) {
+                            const existing = acc.find(i => i.id === p.id);
+                            if (existing) existing.quantity = Math.min(10, existing.quantity + x.quantity);
+                            else acc.push({...p, quantity: Math.min(10, x.quantity)});
+                        }
+                        return acc;
+                    }, []);
+            }
+        } catch (_) { cart = []; }
+        function saveCart() {
+            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity}) => ({id, quantity})))); } catch (_) {}
+        }
+        function startCheckout() {
+            if (!cart.length) return;
+            checkoutStarted = true;
+            updateCartUI();
+            document.getElementById('checkoutForm').scrollIntoView({behavior:'smooth', block:'start'});
+        }
         let selectedShipping = null;
         let paymentBrickController = null;
         let mpPublicKey = null;
@@ -330,20 +357,46 @@
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
             if (!prod) return;
-            cart.push({ ...prod, quantity: 1 });
-            resetCheckoutState();
-            updateCartUI();
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                if (existing.quantity >= 10) return alert('Limite de 10 unidades por produto.');
+                existing.quantity++;
+            } else cart.push({...prod, quantity:1});
+            checkoutStarted = false;
+            resetCheckoutState(); saveCart(); updateCartUI();
             document.getElementById('cartModal').classList.remove('hidden');
         }
-        function removeFromCart(idx) { cart.splice(idx, 1); resetCheckoutState(); updateCartUI(); }
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            if (!cart.length) checkoutStarted = false;
+            resetCheckoutState(); saveCart(); updateCartUI();
+        }
+        function changeQuantity(idx, delta) {
+            const item = cart[idx];
+            if (!item) return;
+            const next = item.quantity + delta;
+            if (next < 1) return removeFromCart(idx);
+            if (next > 10) return alert('Limite de 10 unidades por produto.');
+            item.quantity = next;
+            resetCheckoutState(); saveCart(); updateCartUI();
+        }
         function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
+            document.getElementById('cartCount').innerText = cart.reduce((n, i) => n + i.quantity, 0);
             const container = document.getElementById('cartItems');
             if (!cart.length) {
                 container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i><p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p></div>';
             } else {
-                container.innerHTML = cart.map((item, idx) => `<div class="flex items-center justify-between border border-gray-200 bg-white p-3 rounded-xl shadow-sm"><div class="flex-1 pr-2"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5><p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price)}</p></div><button onclick="removeFromCart(${idx})" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-trash-can"></i> Excluir</button></div>`).join('');
+                container.innerHTML = cart.map((item, idx) => `<div class="flex gap-3 border border-gray-200 bg-white p-3 rounded-xl shadow-sm">
+                    <img src="${item.img}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
+                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
+                    <p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price * item.quantity)}</p>
+                    <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
+                    <span class="text-sm font-semibold">${item.quantity}</span><button type="button" onclick="changeQuantity(${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
+                    <button type="button" onclick="removeFromCart(${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div></div></div>`).join('');
             }
+            document.getElementById('checkoutStartButton').classList.toggle('hidden', !cart.length || checkoutStarted);
+            document.getElementById('checkoutForm').classList.toggle('hidden', !cart.length || !checkoutStarted);
+            document.getElementById('cartCheckoutBlock').classList.toggle('hidden', !cart.length);
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             document.getElementById('cartSubtotal').innerText = `R$ ${brl(subtotal)}`;
             document.getElementById('cartShipping').innerText = selectedShipping ? `R$ ${brl(selectedShipping.price)}` : 'A calcular';
@@ -640,6 +693,7 @@
             });
         });
         renderProducts(products);
+        updateCartUI();
     </script>
 </body>
 </html>
