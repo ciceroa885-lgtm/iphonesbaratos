@@ -9,9 +9,9 @@ export default async function handler(req, res) {
   }
 
   const base = process.env.SUPABASE_URL?.replace(/\/$/, '');
-  const key = process.env.SUPABASE_SECRET_KEY;
+  const adminKey = process.env.SUPABASE_ADMIN_KEY;
 
-  if (!base || !key) {
+  if (!base || !adminKey) {
     return res.status(500).json({
       erro: 'Configuração de autenticação indisponível.'
     });
@@ -33,12 +33,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Autenticar o usuário no Supabase Auth.
     const response = await fetch(
       `${base}/auth/v1/token?grant_type=password`,
       {
         method: 'POST',
         headers: {
-          apikey: key,
+          apikey: adminKey,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -62,18 +63,26 @@ export default async function handler(req, res) {
       });
     }
 
+    // Confirmar que o usuário possui autorização administrativa.
     const adminResponse = await fetch(
       `${base}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(session.user.id)}&select=user_id&limit=1`,
       {
         headers: {
-          apikey: key,
-          Authorization: `Bearer ${key}`
+          apikey: adminKey,
+          'Content-Type': 'application/json'
         }
       }
     );
 
     if (!adminResponse.ok) {
-      throw new Error('Falha ao verificar administrador');
+      console.error(
+        'Falha ao consultar admin_users:',
+        adminResponse.status
+      );
+
+      return res.status(500).json({
+        erro: 'Não foi possível verificar a permissão administrativa.'
+      });
     }
 
     const admins = await adminResponse.json();
@@ -90,7 +99,10 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Erro no login administrativo:', error.message);
+    console.error(
+      'Erro no login administrativo:',
+      error.message
+    );
 
     return res.status(500).json({
       erro: 'Não foi possível realizar o login.'
