@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administração | iPhones Baratos</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f5f9;
+      color: #182236;
+    }
+    header {
+      background: #111827;
+      color: white;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    header strong { font-size: 19px; }
+    main {
+      max-width: 1150px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 12px #0000000a;
+      margin-bottom: 18px;
+    }
+    .login {
+      max-width: 420px;
+      margin: 70px auto;
+    }
+    h1 { margin-top: 0; font-size: 25px; }
+    h2 { font-size: 19px; }
+    label {
+      display: block;
+      margin: 15px 0 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    button {
+      background: #172554;
+      color: white;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .login button { width: 100%; margin-top: 20px; }
+    .secondary { background: #374151; }
+    .muted { color: #64748b; font-size: 13px; }
+    .error { color: #b91c1c; font-size: 14px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+    .number {
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      text-align: left;
+      padding: 13px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 13px;
+      vertical-align: top;
+    }
+    th { background: #f8fafc; }
+    .tag {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .approved { background: #dcfce7; color: #166534; }
+    .pending { background: #fef3c7; color: #92400e; }
+    .rejected { background: #fee2e2; color: #991b1b; }
+    .other { background: #e2e8f0; color: #334155; }
+    .details {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    @media(max-width: 650px) {
+      .stats { grid-template-columns: 1fr; }
+      header strong { font-size: 16px; }
+      main { margin-top: 18px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <strong>iPhones Baratos | Administração</strong>
+    <button id="logout" class="secondary" hidden>Sair</button>
+  </header>
+
+  <main>
+    <section id="loginScreen" class="card login">
+      <h1>Acesso administrativo</h1>
+      <p class="muted">Entre com sua conta autorizada do Supabase.</p>
+
+      <form id="loginForm">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" required>
+
+        <label for="password">Senha</label>
+        <input id="password" type="password"
+               autocomplete="current-password" required>
+
+        <button id="loginButton" type="submit">Entrar no painel</button>
+      </form>
+
+      <p id="loginError" class="error" role="alert"></p>
+    </section>
+
+    <section id="dashboard" hidden>
+      <h1>Gestão de pedidos</h1>
+      <p class="muted">Pedidos registrados no Supabase</p>
+
+      <div class="stats">
+        <div class="card">
+          <div>Total de pedidos</div>
+          <div class="number" id="total">0</div>
+        </div>
+        <div class="card">
+          <div>Pagamentos aprovados</div>
+          <div class="number" id="paid">0</div>
+        </div>
+        <div class="card">
+          <div>Aguardando pagamento</div>
+          <div class="number" id="waiting">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h2>Pedidos recentes</h2>
+          <button id="refresh" type="button">Atualizar</button>
+        </div>
+
+        <p id="message" class="muted" role="status"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pedido / Data</th>
+                <th>Produto</th>
+                <th>Cliente</th>
+                <th>Destino</th>
+                <th>Pagamento</th>
+                <th>Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    let token = null;
+    let expirationTimer = null;
+
+    function showLogin(message = '') {
+      token = null;
+      if (expirationTimer) clearTimeout(expirationTimer);
+      expirationTimer = null;
+      $('dashboard').hidden = true;
+      $('logout').hidden = true;
+      $('loginScreen').hidden = false;
+      $('password').value = '';
+      $('loginError').textContent = message;
+    }
+
+    function showDashboard() {
+      $('loginScreen').hidden = true;
+      $('dashboard').hidden = false;
+      $('logout').hidden = false;
+    }
+
+    function formatDate(date) {
+      if (!date) return '-';
+      const d = new Date(date);
+      return isNaN(d.getTime()) ? '-' :
+        d.toLocaleString('pt-BR');
+    }
+
+    function formatMoney(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ?
+        n.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }) : '-';
+    }
+
+    function getProducts(items) {
+      if (!Array.isArray(items)) return '-';
+
+      return items.map(item => {
+        const name = item.name || item.title ||
+          item.nome || item.product_name || 'Produto';
+        const quantity = item.quantity || item.quantidade || 1;
+        return `${quantity}x ${name}`;
+      }).join(', ') || '-';
+    }
+
+    function getDestination(address) {
+      if (!address || typeof address !== 'object') return '-';
+
+      const city = address.city || address.cidade ||
+        address.localidade || '';
+      const state = address.state || address.uf || '';
+
+      return [city, state].filter(Boolean).join(' - ') || '-';
+    }
+
+    function getStatus(status) {
+      const s = String(status || '').toLowerCase();
+
+      if (s === 'approved') {
+        return { label: 'Aprovado', css: 'approved' };
+      }
+      if (s === 'rejected' || s === 'cancelled' ||
+          s === 'refunded' || s === 'charged_back') {
+        return { label: s, css: 'rejected' };
+      }
+      if (s === 'pending' || s === 'in_process') {
+        return { label: s === 'pending' ? 'Pendente' : 'Em análise',
+                 css: 'pending' };
+      }
+      return { label: s || 'Não informado', css: 'other' };
+    }
+
+    function cell(row, value) {
+      const td = document.createElement('td');
+      td.textContent = value == null ? '-' : String(value);
+      row.appendChild(td);
+      return td;
+    }
+
+    function renderOrders(orders) {
+      $('total').textContent = orders.length;
+      $('paid').textContent = orders.filter(
+        p => p.payment_status === 'approved'
+      ).length;
+      $('waiting').textContent = orders.filter(
+        p => ['pending', 'in_process'].includes(p.payment_status)
+      ).length;
+
+      const tbody = $('ordersBody');
+      tbody.replaceChildren();
+
+      if (!orders.length) {
+        const row = document.createElement('tr');
+        const td = cell(row, 'Nenhum pedido encontrado.');
+        td.colSpan = 6;
+        tbody.appendChild(row);
+        return;
+      }
+
+      orders.forEach(order => {
+        const row = document.createElement('tr');
+
+        const orderCell = document.createElement('td');
+        const strong = document.createElement('strong');
+        strong.textContent = order.external_reference ||
+          order.id || '-';
+        orderCell.appendChild(strong);
+        orderCell.appendChild(document.createElement('br'));
+        orderCell.appendChild(
+          document.createTextNode(formatDate(order.created_at))
+        );
+        row.appendChild(orderCell);
+
+        cell(row, getProducts(order.items));
+        cell(row, order.customer_name || '-');
+        cell(row, getDestination(order.shipping_address));
+
+        const statusCell = document.createElement('td');
+        const status = getStatus(order.payment_status);
+        const badge = document.createElement('span');
+        badge.className = `tag ${status.css}`;
+        badge.textContent = status.label;
+        statusCell.appendChild(badge);
+        row.appendChild(statusCell);
+
+        const detailsCell = document.createElement('td');
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Ver pedido';
+
+        const info = document.createElement('div');
+        info.className = 'details';
+        info.textContent =
+          `Valor: ${formatMoney(order.total)}\n` +
+          `Frete: ${formatMoney(order.shipping_amount)}\n` +
+          `Entrega: ${order.shipping_service_name || '-'}\n` +
+          `Pagamento: ${order.payment_method || '-'}\n` +
+          `ID pagamento: ${order.payment_id || '-'}\n` +
+          `Confirmado em: ${formatDate(order.paid_at)}\n` +
+          `Endereço: ${JSON.stringify(order.shipping_address || {}, null, 2)}`;
+
+        details.append(summary, info);
+        detailsCell.appendChild(details);
+        row.appendChild(detailsCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    async function loadOrders() {
+      if (!token) return;
+
+      $('message').textContent = 'Carregando pedidos...';
+      $('refresh').disabled = true;
+
+      try {
+        const response = await fetch('/api/admin/pedidos', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          cache: 'no-store'
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          showLogin('Sessão expirada ou acesso não autorizado.');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.erro || 'Falha ao consultar pedidos.');
+        }
+
+        const orders = Array.isArray(data.pedidos) ?
+          data.pedidos : [];
+
+        renderOrders(orders);
+        $('message').textContent =
+          `Exibindo ${orders.length} pedido(s) mais recentes.`;
+
+      } catch (error) {
+        $('message').textContent = error.message;
+      } finally {
+        $('refresh').disabled = false;
+      }
+    }
+
+    $('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const button = $('loginButton');
+      button.disabled = true;
+      $('loginError').textContent = '';
+
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: $('email').value.trim(),
+            password: $('password').value
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.access_token) {
+          throw new Error(data.erro || 'Falha no login.');
+        }
+
+        token = data.access_token;
+        $('password').value = '';
+
+        const seconds = Math.max(
+          1,
+          Math.min(Number(data.expires_in) || 3600, 3600)
+        );
+
+        expirationTimer = setTimeout(
+          () => showLogin('Sessão expirada. Entre novamente.'),
+          seconds * 1000
+        );
+
+        showDashboard();
+        await loadOrders();
+
+      } catch (error) {
+        showLogin(error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $('refresh').addEventListener('click', loadOrders);
+    $('logout').addEventListener('click', () => showLogin());
+  </script>
+</body>
+</html>
