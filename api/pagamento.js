@@ -80,16 +80,72 @@ function validCart(cart) {
   });
 }
 
+const LOCAL_SHIPPING_ID = 99999;
+const LOCAL_SHIPPING_PRICE = 18.50;
+const LOCAL_CITIES = new Set(['goiania', 'aparecida de goiania']);
+
+function normalizeCity(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+async function getDestinationCity(cep) {
+  const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(8000)
+  });
+
+  if (!response.ok) {
+    throw new Error('Não foi possível consultar o município do CEP.');
+  }
+
+  const address = await response.json();
+  if (address.erro || !address.localidade || !address.uf) {
+    throw new Error('CEP não encontrado ou inválido.');
+  }
+
+  return {
+    city: normalizeCity(address.localidade),
+    state: String(address.uf).toUpperCase()
+  };
+}
+
 async function recalculateFreight(cep, cart, shippingId) {
-  const token = process.env.MELHOR_ENVIO_TOKEN;
   const origin = cleanCep(process.env.STORE_ORIGIN_CEP);
   const destination = cleanCep(cep);
 
-  if (
-    !token ||
-    origin.length !== 8 ||
-    destination.length !== 8
-  ) {
+  if (origin.length !== 8 || destination.length !== 8) {
+    throw new Error('Configuração de frete incompleta.');
+  }
+
+  // Confirma o município do CEP no servidor.
+  const address = await getDestinationCity(destination);
+  const isLocal = address.state === 'GO' && LOCAL_CITIES.has(address.city);
+
+  if (isLocal) {
+    if (Number(shippingId) !== LOCAL_SHIPPING_ID) {
+      throw new Error('Selecione novamente a opção Entrega Local no checkout.');
+    }
+
+    return {
+      id: LOCAL_SHIPPING_ID,
+      name: 'Entrega Local',
+      price: LOCAL_SHIPPING_PRICE,
+      company: 'iPhones Baratos',
+      deliveryTime: 0
+    };
+  }
+
+  if (Number(shippingId) === LOCAL_SHIPPING_ID) {
+    throw new Error('Entrega Local indisponível para este CEP.');
+  }
+
+  const token = process.env.MELHOR_ENVIO_TOKEN;
+  if (!token) {
     throw new Error('Configuração de frete incompleta.');
   }
 
@@ -167,7 +223,6 @@ async function recalculateFreight(cep, cart, shippingId) {
 }
 
 // Comunicação privada com o Supabase.
-// A chave secreta nunca é enviada ao navegador.
 async function supabaseRequest(path, options = {}) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY;
@@ -316,8 +371,6 @@ export default async function handler(req, res) {
       throw new Error('Método de pagamento não informado.');
     }
 
-    // Mantém a mesma referência em tentativas repetidas
-    // que utilizem a mesma chave de idempotência.
     const suppliedKey = body.idempotencyKey;
 
     const idempotencyKey =
@@ -469,9 +522,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // O webhook também poderá atualizar esse pedido.
-    // Se a gravação falhar aqui, não devemos gerar
-    // uma segunda cobrança automaticamente.
     try {
       await updateOrderPayment(order.id, data);
     } catch (error) {
