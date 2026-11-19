@@ -1,19 +1,19 @@
 
-const json = (res, status, data) => res.status(status).json(data);
+const json = (res, status, data) =>
+  res.status(status).json(data);
 
 async function supabaseRequest(path, options = {}) {
   const base = process.env.SUPABASE_URL?.replace(/\/$/, '');
-  const key = process.env.SUPABASE_SECRET_KEY;
+  const adminKey = process.env.SUPABASE_ADMIN_KEY;
 
-  if (!base || !key) {
-    throw new Error('Configuração Supabase ausente');
+  if (!base || !adminKey) {
+    throw new Error('Configuração Supabase Admin ausente');
   }
 
   return fetch(`${base}${path}`, {
     ...options,
     headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
+      apikey: adminKey,
       ...(options.headers || {}),
     },
   });
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Validar a sessão diretamente no Supabase Auth.
+    // 1. Validar o token do usuário no Supabase Auth.
     const authResponse = await supabaseRequest('/auth/v1/user', {
       headers: {
         Authorization: `Bearer ${match[1]}`,
@@ -59,12 +59,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // Verificar se o usuário é administrador.
+    // 2. Verificar se o usuário pertence à tabela admin_users.
     const adminResponse = await supabaseRequest(
       `/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`
     );
 
     if (!adminResponse.ok) {
+      console.error(
+        'Erro ao verificar admin_users:',
+        adminResponse.status
+      );
+
       throw new Error('Falha na verificação de autorização');
     }
 
@@ -76,12 +81,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // Consultar os pedidos após autenticação e autorização.
+    // 3. Consultar os pedidos após validar o administrador.
     const ordersResponse = await supabaseRequest(
       '/rest/v1/orders?select=id,created_at,external_reference,customer_name,shipping_address,items,subtotal,shipping_amount,total,shipping_service_name,payment_id,payment_method,payment_status,payment_status_detail,paid_at&order=created_at.desc&limit=100'
     );
 
     if (!ordersResponse.ok) {
+      console.error(
+        'Erro ao consultar orders:',
+        ordersResponse.status
+      );
+
       throw new Error('Falha ao consultar pedidos');
     }
 
@@ -92,7 +102,10 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error('Erro em /api/admin/pedidos:', error.message);
+    console.error(
+      'Erro em /api/admin/pedidos:',
+      error.message
+    );
 
     return json(res, 500, {
       erro: 'Não foi possível consultar os pedidos.',
