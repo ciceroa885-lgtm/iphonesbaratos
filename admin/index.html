@@ -102,6 +102,10 @@
     .pending { background: #fef3c7; color: #92400e; }
     .rejected { background: #fee2e2; color: #991b1b; }
     .other { background: #e2e8f0; color: #334155; }
+    .delivery-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 125px; }
+    .delivery-actions button { padding: 8px 10px; font-size: 12px; }
+    .delivery-actions .muted { font-size: 12px; }
+    .delivery-actions button:disabled { cursor: not-allowed; }
     .details {
       background: #f8fafc;
       padding: 12px;
@@ -179,6 +183,7 @@
                 <th>Cliente</th>
                 <th>Destino</th>
                 <th>Pagamento</th>
+                <th>Situação da entrega</th>
                 <th>Detalhes</th>
               </tr>
             </thead>
@@ -194,6 +199,7 @@
 
     let token = null;
     let expirationTimer = null;
+    let deliveryBusy = false;
 
     function showLogin(message = '') {
       token = null;
@@ -288,7 +294,7 @@
       if (!orders.length) {
         const row = document.createElement('tr');
         const td = cell(row, 'Nenhum pedido encontrado.');
-        td.colSpan = 6;
+        td.colSpan = 7;
         tbody.appendChild(row);
         return;
       }
@@ -319,6 +325,51 @@
         statusCell.appendChild(badge);
         row.appendChild(statusCell);
 
+        const deliveryCell = document.createElement('td');
+        const deliveryActions = document.createElement('div');
+        deliveryActions.className = 'delivery-actions';
+        const deliveryTag = document.createElement('span');
+        const paid = order.payment_status === 'approved';
+        const delivery = order.fulfillment_status || 'aguardando_pagamento';
+        const deliveryLabels = {
+          aguardando_pagamento: 'A preparar',
+          a_preparar: 'A preparar',
+          enviado: 'Enviado',
+          entregue: 'Entregue'
+        };
+        deliveryTag.className = `tag ${paid ? (delivery === 'entregue' ? 'approved' : 'pending') : 'other'}`;
+        deliveryTag.textContent = paid
+          ? (deliveryLabels[delivery] || 'A verificar')
+          : 'Bloqueado';
+        deliveryActions.appendChild(deliveryTag);
+
+        if (paid && ['aguardando_pagamento', 'a_preparar', 'enviado'].includes(delivery)) {
+          const next = delivery === 'enviado' ? 'entregue' : 'enviado';
+          const actionButton = document.createElement('button');
+          actionButton.type = 'button';
+          actionButton.textContent = next === 'enviado'
+            ? 'Marcar como enviado'
+            : 'Marcar como entregue';
+          actionButton.disabled = deliveryBusy;
+          actionButton.addEventListener('click', () => updateDelivery(order, next));
+          deliveryActions.appendChild(actionButton);
+        }
+
+        if (paid && delivery === 'enviado' && order.shipped_at) {
+          const sentAt = document.createElement('small');
+          sentAt.className = 'muted';
+          sentAt.textContent = `Enviado: ${formatDate(order.shipped_at)}`;
+          deliveryActions.appendChild(sentAt);
+        }
+        if (paid && delivery === 'entregue' && order.delivered_at) {
+          const deliveredAt = document.createElement('small');
+          deliveredAt.className = 'muted';
+          deliveredAt.textContent = `Entregue: ${formatDate(order.delivered_at)}`;
+          deliveryActions.appendChild(deliveredAt);
+        }
+        deliveryCell.appendChild(deliveryActions);
+        row.appendChild(deliveryCell);
+
         const detailsCell = document.createElement('td');
         const details = document.createElement('details');
         const summary = document.createElement('summary');
@@ -341,6 +392,51 @@
 
         tbody.appendChild(row);
       });
+    }
+
+    async function updateDelivery(order, situacao) {
+      if (!token || deliveryBusy) return;
+      const action = situacao === 'enviado' ? 'ENVIADO' : 'ENTREGUE';
+      const reference = order.external_reference || order.id;
+      if (!confirm(`Confirmar que o pedido ${reference} foi ${action}?`)) return;
+
+      deliveryBusy = true;
+      $('refresh').disabled = true;
+      $('message').textContent = 'Atualizando situação da entrega...';
+      document.querySelectorAll('.delivery-actions button').forEach(button => {
+        button.disabled = true;
+      });
+
+      try {
+        const response = await fetch('/api/admin/entrega', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ pedido_id: order.id, situacao })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          showLogin('Sessão expirada ou acesso não autorizado.');
+          return;
+        }
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.erro || 'Não foi possível atualizar a entrega.');
+        }
+
+        await loadOrders();
+        $('message').textContent = data.mensagem || 'Entrega atualizada.';
+      } catch (error) {
+        $('message').textContent = error.message;
+        await loadOrders();
+        $('message').textContent = `Não foi possível atualizar a entrega: ${error.message}`;
+      } finally {
+        deliveryBusy = false;
+        $('refresh').disabled = false;
+      }
     }
 
     async function loadOrders() {
