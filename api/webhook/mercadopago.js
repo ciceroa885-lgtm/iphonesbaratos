@@ -259,7 +259,18 @@ export default async function handler(req, res) {
       }
     );
 
+    // DIAGNÓSTICO DO ERRO 404
+    // Registra o ID consultado e a resposta da API,
+    // sem registrar o token de acesso.
     if (!response.ok) {
+      const errorBody = await response.text();
+
+      console.error('Diagnóstico consulta Mercado Pago:', {
+        paymentId,
+        httpStatus: response.status,
+        mpError: errorBody.slice(0, 500)
+      });
+
       throw new Error(
         `Consulta Mercado Pago: ${response.status}`
       );
