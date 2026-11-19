@@ -75,9 +75,12 @@ export default async function handler(req, res) {
     );
 
     if (!adminResponse.ok) {
+      const errorBody = await adminResponse.text();
+
       console.error(
         'Falha ao consultar admin_users:',
-        adminResponse.status
+        adminResponse.status,
+        errorBody.slice(0, 1000)
       );
 
       return res.status(500).json({
