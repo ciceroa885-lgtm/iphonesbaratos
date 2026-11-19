@@ -671,7 +671,17 @@
                 return;
             }
 
-            openPaymentResult(`<div class="text-center py-6"><div class="w-16 h-16 mx-auto rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-3xl mb-3"><i class="fa-solid fa-hourglass-half"></i></div><h3 class="text-xl font-extrabold">Pagamento em análise</h3><p class="text-xs text-gray-500 mt-2">Status: ${data.status || 'aguardando'}</p></div>`);
+            if (data.status === 'rejected') {
+                openPaymentResult(`
+                    <div class="text-center py-6">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl mb-3"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <h3 class="text-xl font-extrabold text-slate-900">Pagamento não aprovado</h3>
+                        <p class="text-sm text-gray-600 mt-3 leading-relaxed">A operadora do cartão não autorizou a compra. Verifique o motivo informado pelo banco ou utilize outra forma de pagamento.</p>
+                    </div>`);
+                return;
+            }
+
+            openPaymentResult(`<div class="text-center py-6"><div class="w-16 h-16 mx-auto rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-3xl mb-3"><i class="fa-solid fa-hourglass-half"></i></div><h3 class="text-xl font-extrabold">Pagamento em análise</h3><p class="text-xs text-gray-500 mt-2">Aguarde a confirmação do Mercado Pago.</p></div>`);
         }
 
         document.getElementById('custCEP').addEventListener('blur', lookupCep);
