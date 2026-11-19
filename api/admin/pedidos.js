@@ -83,7 +83,7 @@ export default async function handler(req, res) {
 
     // 3. Consultar os pedidos após validar o administrador.
     const ordersResponse = await supabaseRequest(
-      '/rest/v1/orders?select=id,created_at,external_reference,customer_name,shipping_address,items,subtotal,shipping_amount,total,shipping_service_name,payment_id,payment_method,payment_status,payment_status_detail,paid_at&order=created_at.desc&limit=100'
+      '/rest/v1/orders?select=id,created_at,external_reference,customer_name,shipping_address,items,subtotal,shipping_amount,total,shipping_service_name,payment_id,payment_method,payment_status,payment_status_detail,paid_at,fulfillment_status,shipped_at,delivered_at&order=created_at.desc&limit=100'
     );
 
     if (!ordersResponse.ok) {
