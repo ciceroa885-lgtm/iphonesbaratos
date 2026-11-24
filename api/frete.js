@@ -2,7 +2,7 @@
 const MELHOR_ENVIO_URL =
   'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate';
 
-const FRETE_LOCAL = 0.00;
+const FRETE_LOCAL = 18.50;
 const ID_ENTREGA_LOCAL = 99999;
 
 const CIDADES_ENTREGA_LOCAL = new Set([
