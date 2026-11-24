@@ -4,7 +4,7 @@ import { enviarWhatsApp } from '../whatsapp.js';
 
 const MP_URL = 'https://api.mercadopago.com/v1/payments';
 
-const WHATSAPP_DESTINO = '556292208912';
+const WHATSAPP_DESTINO = '5562992208912';
 const WHATSAPP_TEMPLATE = 'jaspers_market_order_confirmation_v1';
 
 function validateSignature(req, secret) {
