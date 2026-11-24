@@ -26,7 +26,7 @@ const catalog = [
   ['iPhone 11 Verde 128GB',1690],
   ['iPhone 11 Roxo 128GB',1690],
   ['iPhone 11 Branco 128GB',1690],
-  ['iPhone 11 Preto 256GB',1429]
+  ['iPhone 11 Preto 256GB',1]
 ];
 
 const PRODUCTS = Object.fromEntries(
