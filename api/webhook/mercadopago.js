@@ -1,7 +1,11 @@
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { enviarWhatsApp } from '../whatsapp.js';
 
 const MP_URL = 'https://api.mercadopago.com/v1/payments';
+
+const WHATSAPP_DESTINO = '556292208912';
+const WHATSAPP_TEMPLATE = 'jaspers_market_order_confirmation_v1';
 
 function validateSignature(req, secret) {
   const signature = req.headers['x-signature'];
@@ -94,7 +98,7 @@ async function supabaseRequest(path, options = {}) {
 async function findOrder(reference) {
   const orders = await supabaseRequest(
     `orders?external_reference=eq.${encodeURIComponent(reference)}` +
-    '&select=id,total,payment_id,payment_status'
+    '&select=id,total,payment_id,payment_status,customer_name,external_reference,paid_at'
   );
 
   if (!Array.isArray(orders) || orders.length !== 1) {
@@ -124,8 +128,6 @@ async function updateOrder(order, payment) {
     throw new Error('Valor do pagamento divergente.');
   }
 
-  // Notificações antigas não devem rebaixar
-  // um pagamento aprovado para pendente ou recusado.
   const staleStatuses = [
     'pending',
     'in_process',
@@ -150,8 +152,6 @@ async function updateOrder(order, payment) {
       payment.date_approved || new Date().toISOString();
   }
 
-  // Preserva a data de aprovação em atualizações
-  // posteriores, como estorno ou contestação.
   let path =
     `orders?id=eq.${encodeURIComponent(order.id)}`;
 
@@ -197,8 +197,6 @@ async function registerEvent(orderId, payment, eventType) {
     }
   };
 
-  // O índice único impede registrar duas vezes
-  // o mesmo estado do mesmo pagamento.
   await supabaseRequest(
     'payment_events?on_conflict=payment_id,event_type,payment_status',
     {
@@ -209,6 +207,98 @@ async function registerEvent(orderId, payment, eventType) {
       body: JSON.stringify(record)
     }
   );
+}
+
+async function atualizarNotificacao(id, dados) {
+  await supabaseRequest(
+    `whatsapp_notifications?id=eq.${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        ...dados,
+        updated_at: new Date().toISOString()
+      })
+    }
+  );
+}
+
+async function notificarCompraAprovada(order, payment) {
+  const reserva = await supabaseRequest(
+    'rpc/claim_whatsapp_notification',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        p_order_id: order.id,
+        p_payment_id: String(payment.id),
+        p_recipient_phone: WHATSAPP_DESTINO
+      })
+    }
+  );
+
+  const notificacao = reserva?.[0];
+
+  if (!notificacao) {
+    throw new Error('Falha ao reservar notificação.');
+  }
+
+  if (!notificacao.claimed) {
+    console.log('Notificação já reservada', {
+      paymentId: String(payment.id)
+    });
+    return;
+  }
+
+  const dataPagamento =
+    payment.date_approved ||
+    order.paid_at ||
+    new Date().toISOString();
+
+  const dataFormatada = new Intl.DateTimeFormat(
+    'pt-BR',
+    {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }
+  ).format(new Date(dataPagamento));
+
+  try {
+    const resultado = await enviarWhatsApp({
+      telefone: WHATSAPP_DESTINO,
+      template: WHATSAPP_TEMPLATE,
+      idioma: 'en_US',
+      parametros: [
+        order.customer_name,
+        order.external_reference,
+        dataFormatada
+      ]
+    });
+
+    await atualizarNotificacao(notificacao.notification_id, {
+      status: 'accepted',
+      message_id: resultado.messageId,
+      last_error: null
+    });
+
+    console.log('WhatsApp aceito pela Meta', {
+      paymentId: String(payment.id),
+      messageId: resultado.messageId
+    });
+
+  } catch (error) {
+    await atualizarNotificacao(notificacao.notification_id, {
+      status: 'failed',
+      last_error: error.message
+    });
+
+    console.error('Falha na notificação WhatsApp:', {
+      paymentId: String(payment.id),
+      error: error.message
+    });
+
+    // A falha do WhatsApp não desfaz a aprovação.
+  }
 }
 
 export default async function handler(req, res) {
@@ -259,9 +349,6 @@ export default async function handler(req, res) {
       }
     );
 
-    // DIAGNÓSTICO DO ERRO 404
-    // Registra o ID consultado e a resposta da API,
-    // sem registrar o token de acesso.
     if (!response.ok) {
       const errorBody = await response.text();
 
@@ -292,13 +379,15 @@ export default async function handler(req, res) {
 
     const updated = await updateOrder(order, payment);
 
-    // Um mesmo mecanismo atende PIX, boleto
-    // e cartão de crédito.
     await registerEvent(
       order.id,
       payment,
       'payment'
     );
+
+    if (payment.status === 'approved') {
+      await notificarCompraAprovada(order, payment);
+    }
 
     console.log('Pagamento sincronizado', {
       paymentId,
@@ -318,7 +407,6 @@ export default async function handler(req, res) {
       error.message
     );
 
-    // Permite nova tentativa de entrega da notificação.
     return res.status(503).json({
       received: false
     });
