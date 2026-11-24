@@ -26,7 +26,7 @@ const catalog = [
   ['iPhone 11 Verde 128GB',1690],
   ['iPhone 11 Roxo 128GB',1690],
   ['iPhone 11 Branco 128GB',1690],
-  ['iPhone 11 Preto 256GB',1]
+  ['iPhone 11 Preto 256GB',1429]
 ];
 
 const PRODUCTS = Object.fromEntries(
@@ -81,7 +81,7 @@ function validCart(cart) {
 }
 
 const LOCAL_SHIPPING_ID = 99999;
-const LOCAL_SHIPPING_PRICE = 0.00;
+const LOCAL_SHIPPING_PRICE = 18.50;
 const LOCAL_CITIES = new Set(['goiania', 'aparecida de goiania']);
 
 function normalizeCity(value) {
