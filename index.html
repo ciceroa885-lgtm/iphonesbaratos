@@ -191,10 +191,10 @@
 
                 <div id="cartCheckoutBlock" class="p-4 border-t bg-gray-50 space-y-4 rounded-xl">
                     <div id="cartSummary" class="space-y-1 text-sm">
-                        <div class="flex justify-between text-sm"><span>Subtotal:</span><span id="cartSubtotal">R\$ 0,00</span></div>
+                        <div class="flex justify-between text-sm"><span>Subtotal:</span><span id="cartSubtotal">R$ 0,00</span></div>
                         <div class="flex justify-between text-sm"><span>Frete:</span><span id="cartShipping">A calcular</span></div>
                         <div class="flex justify-between font-bold text-lg text-slate-900 border-t pt-2 mt-2">
-                            <span>Total:</span><span id="cartTotal">R\$ 0,00</span>
+                            <span>Total:</span><span id="cartTotal">R$ 0,00</span>
                         </div>
                     </div>
 
@@ -272,4 +272,361 @@
             { id: 2, name: "iPhone 18 Pro Titanio Branco 256GB", price: 10185, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Titanio Branco White Titanium.png" },
             { id: 3, name: "iPhone 17 Pro Titanio Azul 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Titanio Azul.png" },
             { id: 4, name: "iPhone 17 Pro Black 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 17 pro Black.png" },
-            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7355, category
+            { id: 5, name: "iPhone 17 Pro Branco 256GB", price: 7355, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 17 pro branco.png" },
+            { id: 6, name: "iPhone 16 Pro Verde Azul 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 pro verde azul.png" },
+            { id: 7, name: "iPhone 16 Pro Rosa 128GB", price: 5499, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/iphone 16 pro rosa.png" },
+            { id: 8, name: "iPhone 16 Plus Ultramarinho 128GB", price: 4899, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus ultramarinho.png" },
+            { id: 9, name: "iPhone 16 128GB Preto", price: 4329, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 16 plus Preto.png" },
+            { id: 10, name: "iPhone 15 Pro Verde 128GB", price: 4599, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 pro Verde.png" },
+            { id: 11, name: "iPhone 15 Plus Azul 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Azul.png" },
+            { id: 12, name: "iPhone 15 Plus Rosa 128GB", price: 4199, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 Plus Rosa.jpg" },
+            { id: 13, name: "iPhone 15 128GB Amarelo", price: 3879, category: "lacrados", warranty: "1 Ano Garantia Apple", img: "assets/Iphone 15 plus amarelo.jpg" },
+            { id: 14, name: "iPhone 14 Plus Vermelho 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Vermelho.jpg" },
+            { id: 15, name: "iPhone 14 Plus Azul 128GB CPO", price: 3620, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/Iphone 14 Plus Azul.jpg" },
+            { id: 16, name: "iPhone 14 Meia-Noite 128GB", price: 3490, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/iphone14-meia-noite (1).jpg" },
+            { id: 17, name: "iPhone 13 Azul 128GB CPO", price: 3150, category: "cpo", warranty: "Garantia Oficial CPO", img: "assets/iphone13-azul (1).png" },
+            { id: 18, name: "iPhone 13 Rosa 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Rosa.png" },
+            { id: 19, name: "iPhone 13 Verde 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 verde.png" },
+            { id: 20, name: "iPhone 13 Estelar 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 Estelar.png" },
+            { id: 21, name: "iPhone 13 Meia Noite 128GB", price: 2890, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 13 meia noite.png" },
+            { id: 22, name: "iPhone 11 Verde 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-verde (1).png" },
+            { id: 23, name: "iPhone 11 Roxo 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-Roxo (1).png" },
+            { id: 24, name: "iPhone 11 Branco 128GB", price: 1690, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone11-branco (1).png" },
+            { id: 25, name: "iPhone 11 Preto 256GB", price: 1429, category: "seminovos", warranty: "Seminovo Revisado", img: "assets/Iphone 11 preto.png" }
+        ];
+
+        const SHIPPING_DEFAULTS = { weight: 0.8, width: 18, height: 10, length: 28 };
+        const CART_STORAGE_KEY = 'ipb_cart_v1';
+        let cart = [];
+        let checkoutStarted = false;
+
+        try {
+            const stored = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+            if (Array.isArray(stored)) {
+                cart = stored.filter(x => Number.isInteger(x.id) && Number.isInteger(x.quantity) && x.quantity > 0)
+                    .reduce((acc, x) => {
+                        const p = products.find(p => p.id === x.id);
+                        if (p) {
+                            const existing = acc.find(i => i.id === p.id);
+                            if (existing) existing.quantity = Math.min(10, existing.quantity + x.quantity);
+                            else acc.push({...p, quantity: Math.min(10, x.quantity)});
+                        }
+                        return acc;
+                    }, []);
+            }
+        } catch (_) { cart = []; }
+
+        function saveCart() {
+            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity}) => ({id, quantity})))); } catch (_) {}
+        }
+
+        function startCheckout() {
+            if (!cart.length) return;
+            checkoutStarted = true;
+            updateCartUI();
+            document.getElementById('checkoutForm').scrollIntoView({behavior:'smooth', block:'start'});
+        }
+
+        let selectedShipping = null;
+        let paymentBrickController = null;
+        let mpPublicKey = null;
+
+        const brl = value => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const cleanCep = value => String(value || '').replace(/\D/g, '').slice(0, 8);
+
+        function renderProducts(items) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = items.map(p => `
+                <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <div class="relative bg-gray-50 rounded-xl p-4 mb-4 text-center h-52 flex items-center justify-center">
+                            <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded ${p.category === 'lacrados' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">${p.warranty}</span>
+                            <img src="${p.img}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
+                        <div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>
+                    </div>
+                    <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
+                </div>`).join('');
+        }
+
+        function filterCategory(cat) { renderProducts(cat === 'all' ? products : products.filter(p => p.category === cat)); }
+        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase(); renderProducts(products.filter(p => p.name.toLowerCase().includes(q))); }
+
+        function addToCart(id) {
+            const prod = products.find(p => p.id === id);
+            if (!prod) return;
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                if (existing.quantity >= 10) return alert('Limite de 10 unidades por produto.');
+                existing.quantity++;
+            } else cart.push({...prod, quantity:1});
+            checkoutStarted = false;
+            resetCheckoutState(); saveCart(); updateCartUI();
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+
+        function removeFromCart(idx) {
+            cart.splice(idx, 1);
+            if (!cart.length) checkoutStarted = false;
+            resetCheckoutState(); saveCart(); updateCartUI();
+        }
+
+        function changeQuantity(idx, delta) {
+            const item = cart[idx];
+            if (!item) return;
+            const next = item.quantity + delta;
+            if (next < 1) return removeFromCart(idx);
+            if (next > 10) return alert('Limite de 10 unidades por produto.');
+            item.quantity = next;
+            resetCheckoutState(); saveCart(); updateCartUI();
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCount').innerText = cart.reduce((n, i) => n + i.quantity, 0);
+            const container = document.getElementById('cartItems');
+            if (!cart.length) {
+                container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i><p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p></div>';
+            } else {
+                container.innerHTML = cart.map((item, idx) => `<div class="flex gap-3 border border-gray-200 bg-white p-3 rounded-xl shadow-sm">
+                    <img src="${item.img}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
+                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
+                    <p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price * item.quantity)}</p>
+                    <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
+                    <span class="text-sm font-semibold">${item.quantity}</span><button type="button" onclick="changeQuantity(${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
+                    <button type="button" onclick="removeFromCart(${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div></div></div>`).join('');
+            }
+            document.getElementById('checkoutStartButton').classList.toggle('hidden', !cart.length || checkoutStarted);
+            document.getElementById('checkoutForm').classList.toggle('hidden', !cart.length || !checkoutStarted);
+            document.getElementById('cartCheckoutBlock').classList.toggle('hidden', !cart.length);
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            document.getElementById('cartSubtotal').innerText = `R$ ${brl(subtotal)}`;
+            document.getElementById('cartShipping').innerText = selectedShipping ? `R$ ${brl(selectedShipping.price)}` : 'A calcular';
+            document.getElementById('cartTotal').innerText = `R$ ${brl(subtotal + (selectedShipping?.price || 0))}`;
+        }
+
+        function toggleCart() { updateCartUI(); document.getElementById('cartModal').classList.toggle('hidden'); }
+
+        function resetCheckoutState() {
+            selectedShipping = null;
+            document.getElementById('shippingBlock').classList.add('hidden');
+            document.getElementById('paymentBlock').classList.add('hidden');
+            document.getElementById('retryPaymentButton').classList.remove('hidden');
+            document.getElementById('shippingOptions').innerHTML = '';
+            const shippingDestination = document.getElementById('shippingDestination');
+            if (shippingDestination) shippingDestination.innerText = '';
+            document.getElementById('cartShipping').innerText = 'A calcular';
+            if (paymentBrickController) { try { paymentBrickController.unmount(); } catch (_) {} paymentBrickController = null; }
+        }
+
+        async function lookupCep() {
+            const input = document.getElementById('custCEP');
+            const cep = cleanCep(input.value);
+            if (cep.length !== 8) return;
+            input.value = `${cep.slice(0,5)}-${cep.slice(5)}`;
+            try {
+                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await r.json();
+                if (data.erro) throw new Error('CEP não encontrado.');
+                document.getElementById('custStreet').value = data.logradouro || '';
+                document.getElementById('custNeighborhood').value = data.bairro || '';
+                document.getElementById('custCity').value = data.localidade || '';
+                document.getElementById('custState').value = data.uf || '';
+            } catch (e) { alert(e.message || 'Não foi possível consultar o CEP.'); }
+        }
+
+        function customerData() {
+            return {
+                name: document.getElementById('custName').value.trim(),
+                cpf: document.getElementById('custCPF').value.replace(/\D/g, ''),
+                email: document.getElementById('custEmail').value.trim(),
+                phone: document.getElementById('custPhone').value.trim(),
+                cep: cleanCep(document.getElementById('custCEP').value),
+                address: {
+                    street: document.getElementById('custStreet').value.trim(),
+                    number: document.getElementById('custNumber').value.trim(),
+                    complement: document.getElementById('custComplement').value.trim(),
+                    neighborhood: document.getElementById('custNeighborhood').value.trim(),
+                    city: document.getElementById('custCity').value.trim(),
+                    state: document.getElementById('custState').value.trim().toUpperCase()
+                }
+            };
+        }
+
+        async function calculateShipping() {
+            if (!cart.length) return alert('Adicione um produto ao carrinho.');
+            const c = customerData();
+            if (c.cep.length !== 8) return alert('Digite um CEP válido.');
+            const btn = document.getElementById('btnCalcFrete');
+            btn.disabled = true; btn.innerText = 'Calculando...';
+            try {
+                const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitary_value: item.price, ...SHIPPING_DEFAULTS }));
+                const r = await fetch('/api/frete', {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+                    body: JSON.stringify({ cep: c.cep, products: productsForShipping, requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) })
+                });
+                const data = await r.json();
+                if (!r.ok || !data.options?.length) throw new Error(data.error || 'Nenhuma opção de envio encontrada.');
+                const dest = document.getElementById('shippingDestination');
+                if (dest) dest.innerText = `${c.address.city || ''} ${c.address.state || ''} (${c.cep})`;
+                const opts = document.getElementById('shippingOptions');
+                opts.innerHTML = data.options.map((o, i) => `
+                    <label class="flex items-center justify-between p-2.5 border rounded-lg bg-white cursor-pointer hover:border-blue-500">
+                        <div class="flex items-center gap-2">
+                            <input type="radio" name="shippingOption" value="${i}" onchange='selectShipping(${JSON.stringify(o)})'>
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">${o.name} (${o.company})</div>
+                                <div class="text-[10px] text-gray-500">Prazo estimado: ${o.delivery_time} dias úteis</div>
+                            </div>
+                        </div>
+                        <div class="text-xs font-bold text-blue-600">R$ ${brl(o.price)}</div>
+                    </label>
+                `).join('');
+                document.getElementById('shippingBlock').classList.remove('hidden');
+            } catch (e) {
+                alert(e.message || 'Erro ao calcular frete.');
+            } finally {
+                btn.disabled = false; btn.innerText = 'Calcular frete';
+            }
+        }
+
+        function selectShipping(option) {
+            selectedShipping = option;
+            updateCartUI();
+            document.getElementById('paymentBlock').classList.remove('hidden');
+            renderPaymentBrick();
+        }
+
+        async function renderPaymentBrick() {
+            const c = customerData();
+            if (!c.name || c.cpf.length !== 11 || !c.email || !c.address.street || !c.address.number) {
+                return alert('Preencha todos os seus dados e endereço completo antes de prosseguir para o pagamento.');
+            }
+            const errEl = document.getElementById('paymentError');
+            errEl.classList.add('hidden');
+            try {
+                if (!mpPublicKey) {
+                    const cfg = await fetch('/api/mp-config').then(r => r.json());
+                    if (!cfg.publicKey) throw new Error('Chave pública do Mercado Pago não configurada.');
+                    mpPublicKey = cfg.publicKey;
+                }
+                const mp = new MercadoPago(mpPublicKey, { locale: 'pt-BR' });
+                const bricksBuilder = mp.bricks();
+                const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+                const amount = Number((subtotal + (selectedShipping?.price || 0)).toFixed(2));
+
+                if (paymentBrickController) {
+                    try { await paymentBrickController.unmount(); } catch (_) {}
+                }
+                document.getElementById('retryPaymentButton').classList.add('hidden');
+
+                paymentBrickController = await bricksBuilder.create('payment', 'paymentBrick_container', {
+                    initialization: {
+                        amount: amount,
+                        payer: {
+                            firstName: c.name.split(' ')[0],
+                            lastName: c.name.split(' ').slice(1).join(' ') || c.name,
+                            email: c.email,
+                            identification: { type: 'CPF', number: c.cpf }
+                        }
+                    },
+                    customization: {
+                        paymentMethods: {
+                            ticket: 'all',
+                            bankTransfer: 'all',
+                            creditCard: 'all',
+                            maxInstallments: 12
+                        }
+                    },
+                    callbacks: {
+                        onReady: () => {},
+                        onSubmit: ({ formData }) => {
+                            return new Promise((resolve, reject) => {
+                                fetch('/api/pagamento', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        formData,
+                                        customer: c,
+                                        items: cart.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price })),
+                                        shipping: selectedShipping
+                                    })
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (!data.sucesso && data.error) throw new Error(data.error || data.erro);
+                                    showPaymentResult(data);
+                                    cart = [];
+                                    saveCart();
+                                    updateCartUI();
+                                    resolve();
+                                })
+                                .catch(error => {
+                                    errEl.innerText = error.message || 'Erro ao processar pagamento.';
+                                    errEl.classList.remove('hidden');
+                                    reject();
+                                });
+                            });
+                        },
+                        onError: (error) => {
+                            errEl.innerText = 'Erro no checkout: ' + (error?.message || 'verifique os dados.');
+                            errEl.classList.remove('hidden');
+                        }
+                    }
+                });
+            } catch (e) {
+                errEl.innerText = e.message || 'Não foi possível carregar o pagamento.';
+                errEl.classList.remove('hidden');
+                document.getElementById('retryPaymentButton').classList.remove('hidden');
+            }
+        }
+
+        function showPaymentResult(data) {
+            const modal = document.getElementById('paymentResultModal');
+            const content = document.getElementById('paymentResultContent');
+            if (data.qr_code_base64 || data.point_of_interaction?.transaction_data?.qr_code_base64) {
+                const qrBase64 = data.qr_code_base64 || data.point_of_interaction.transaction_data.qr_code_base64;
+                const qrCode = data.qr_code_pix || data.point_of_interaction.transaction_data.qr_code;
+                content.innerHTML = `
+                    <div class="text-center space-y-4">
+                        <h4 class="font-bold text-lg text-slate-900">PIX Gerado com Sucesso!</h4>
+                        <p class="text-xs text-gray-500">Escaneie o QR Code no aplicativo do seu banco:</p>
+                        <img src="data:image/jpeg;base64,${qrBase64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-xl">
+                        <textarea readonly id="pixCopyCode" class="w-full text-[11px] p-2 border rounded-lg bg-gray-50 h-20">${qrCode}</textarea>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopyCode').value); alert('Código PIX copiado!');" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-xs">Copiar Código PIX</button>
+                    </div>`;
+            } else if (data.pdf_url || data.transaction_details?.external_resource_url) {
+                const pdf = data.pdf_url || data.transaction_details.external_resource_url;
+                content.innerHTML = `
+                    <div class="text-center space-y-4">
+                        <h4 class="font-bold text-lg text-slate-900">Boleto Gerado!</h4>
+                        <p class="text-xs text-gray-500">Clique abaixo para abrir e pagar seu boleto:</p>
+                        <a href="${pdf}" target="_blank" class="block w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs">Abrir Boleto PDF</a>
+                    </div>`;
+            } else {
+                content.innerHTML = `
+                    <div class="text-center space-y-3 py-4">
+                        <i class="fa-solid fa-circle-check text-green-500 text-4xl"></i>
+                        <h4 class="font-bold text-lg text-slate-900">Pedido Confirmado!</h4>
+                        <p class="text-xs text-gray-600">Status do pagamento: <strong>${data.status || 'Aprovado / Em processamento'}</strong></p>
+                    </div>`;
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePaymentResult() {
+            const modal = document.getElementById('paymentResultModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            toggleCart();
+        }
+
+        document.getElementById('custCEP').addEventListener('blur', lookupCep);
+        renderProducts(products);
+        updateCartUI();
+    </script>
+</body>
+</html>
