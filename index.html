@@ -46,18 +46,23 @@
             display: block;
         }
 
-        /* FAIXA FINA DE BLACK FRIDAY ABAIXO DO VÍDEO */
+        /* FAIXA FINA DE BLACK FRIDAY ABAIXO DO VÍDEO (1920x265 SEM CORTES) */
         .blackfriday-strip {
             width: 100%;
-            height: 145px;
+            aspect-ratio: 1920 / 265;
+            min-height: 150px;
+            max-height: 265px;
             background-color: #09090b;
             overflow: hidden;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .blackfriday-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             object-position: center;
             display: block;
         }
@@ -67,7 +72,8 @@
                 height: 280px;
             }
             .blackfriday-strip {
-                height: 92px;
+                min-height: 75px;
+                max-height: 110px;
             }
         }
         
@@ -367,10 +373,10 @@
                             <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded ${p.category === 'lacrados' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">${p.warranty}</span>
                             <img src="${p.img}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
                         </div>
-                        <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
-                        <div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>
+                        <h3 class="font-bold text-sm text-slate-900 mb-1">\${p.name}</h3>
+                        <div class="text-lg font-extrabold text-slate-900">R\$ \${brl(p.price)}</div>
                     </div>
-                    <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
+                    <button onclick="addToCart(\${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
                 </div>`).join('');
         }
 
@@ -413,20 +419,20 @@
                 container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i><p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p></div>';
             } else {
                 container.innerHTML = cart.map((item, idx) => `<div class="flex gap-3 border border-gray-200 bg-white p-3 rounded-xl shadow-sm">
-                    <img src="${item.img}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
-                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
-                    <p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price * item.quantity)}</p>
-                    <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
-                    <span class="text-sm font-semibold">${item.quantity}</span><button type="button" onclick="changeQuantity(${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
-                    <button type="button" onclick="removeFromCart(${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div></div></div>`).join('');
+                    <img src="\${item.img}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
+                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">\${item.name}</h5>
+                    <p class="text-xs text-blue-600 font-bold mt-1">R\$ \${brl(item.price * item.quantity)}</p>
+                    <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(\${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
+                    <span class="text-sm font-semibold">\${item.quantity}</span><button type="button" onclick="changeQuantity(\${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
+                    <button type="button" onclick="removeFromCart(\${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div></div></div>`).join('');
             }
             document.getElementById('checkoutStartButton').classList.toggle('hidden', !cart.length || checkoutStarted);
             document.getElementById('checkoutForm').classList.toggle('hidden', !cart.length || !checkoutStarted);
             document.getElementById('cartCheckoutBlock').classList.toggle('hidden', !cart.length);
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            document.getElementById('cartSubtotal').innerText = `R$ ${brl(subtotal)}`;
-            document.getElementById('cartShipping').innerText = selectedShipping ? `R$ ${brl(selectedShipping.price)}` : 'A calcular';
-            document.getElementById('cartTotal').innerText = `R$ ${brl(subtotal + (selectedShipping?.price || 0))}`;
+            document.getElementById('cartSubtotal').innerText = `R\$ \${brl(subtotal)}`;
+            document.getElementById('cartShipping').innerText = selectedShipping ? `R\$ \${brl(selectedShipping.price)}` : 'A calcular';
+            document.getElementById('cartTotal').innerText = `R\$ \${brl(subtotal + (selectedShipping?.price || 0))}`;
         }
 
         function toggleCart() { updateCartUI(); document.getElementById('cartModal').classList.toggle('hidden'); }
@@ -449,52 +455,7 @@
             if (cep.length !== 8) return;
             input.value = `${cep.slice(0,5)}-${cep.slice(5)}`;
             try {
-                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await r.json();
-                if (data.erro) throw new Error('CEP não encontrado.');
-                document.getElementById('custStreet').value = data.logradouro || '';
-                document.getElementById('custNeighborhood').value = data.bairro || '';
-                document.getElementById('custCity').value = data.localidade || '';
-                document.getElementById('custState').value = data.uf || '';
-            } catch (e) { alert(e.message || 'Não foi possível consultar o CEP.'); }
-        }
-
-        function customerData() {
-            return {
-                name: document.getElementById('custName').value.trim(),
-                cpf: document.getElementById('custCPF').value.replace(/\D/g, ''),
-                email: document.getElementById('custEmail').value.trim(),
-                phone: document.getElementById('custPhone').value.trim(),
-                cep: cleanCep(document.getElementById('custCEP').value),
-                address: {
-                    street: document.getElementById('custStreet').value.trim(),
-                    number: document.getElementById('custNumber').value.trim(),
-                    complement: document.getElementById('custComplement').value.trim(),
-                    neighborhood: document.getElementById('custNeighborhood').value.trim(),
-                    city: document.getElementById('custCity').value.trim(),
-                    state: document.getElementById('custState').value.trim().toUpperCase()
-                }
-            };
-        }
-
-        async function calculateShipping() {
-            if (!cart.length) return alert('Adicione um produto ao carrinho.');
-            const c = customerData();
-            if (c.cep.length !== 8) return alert('Digite um CEP válido.');
-            const btn = document.getElementById('btnCalcFrete');
-            btn.disabled = true; btn.innerText = 'Calculando...';
-            try {
-                const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitary_value: item.price, ...SHIPPING_DEFAULTS }));
-                const r = await fetch('/api/frete', {
-                    method: 'POST',
-                    cache: 'no-store',
-                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-                    body: JSON.stringify({ cep: c.cep, products: productsForShipping, requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) })
-                });
-                const data = await r.json();
-                if (!r.ok || !data.options?.length) throw new Error(data.error || 'Nenhuma opção de envio encontrada.');
-                const dest = document.getElementById('shippingDestination');
-                if (dest) dest.innerText = `${c.address.city || ''} ${c.address.state || ''} (${c.cep})`;
+                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`); const data = await r.json(); if (data.erro) throw new Error('CEP não encontrado.'); document.getElementById('custStreet').value = data.logradouro \vert{}\vert{} ''; document.getElementById('custNeighborhood').value = data.bairro \vert{}\vert{} ''; document.getElementById('custCity').value = data.localidade \vert{}\vert{} ''; document.getElementById('custState').value = data.uf \vert{}\vert{} ''; } catch (e) { alert(e.message \vert{}\vert{} 'Não foi possível consultar o CEP.'); } }  function customerData() { return { name: document.getElementById('custName').value.trim(), cpf: document.getElementById('custCPF').value.replace(/\D/g, ''), email: document.getElementById('custEmail').value.trim(), phone: document.getElementById('custPhone').value.trim(), cep: cleanCep(document.getElementById('custCEP').value), address: { street: document.getElementById('custStreet').value.trim(), number: document.getElementById('custNumber').value.trim(), complement: document.getElementById('custComplement').value.trim(), neighborhood: document.getElementById('custNeighborhood').value.trim(), city: document.getElementById('custCity').value.trim(), state: document.getElementById('custState').value.trim().toUpperCase() } }; }  async function calculateShipping() { if (!cart.length) return alert('Adicione um produto ao carrinho.'); const c = customerData(); if (c.cep.length !== 8) return alert('Digite um CEP válido.'); const btn = document.getElementById('btnCalcFrete'); btn.disabled = true; btn.innerText = 'Calculando...'; try { const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitary_value: item.price, ...SHIPPING_DEFAULTS })); const r = await fetch('/api/frete', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }, body: JSON.stringify({ cep: c.cep, products: productsForShipping, requestId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) }) }); const data = await r.json(); if (!r.ok \vert{}\vert{} !data.options?.length) throw new Error(data.error \vert{}\vert{} 'Nenhuma opção de envio encontrada.'); const dest = document.getElementById('shippingDestination'); if (dest) dest.innerText = `${c.address.city || ''} ${c.address.state \vert{}\vert{} ''} (${c.cep})`;
                 const opts = document.getElementById('shippingOptions');
                 opts.innerHTML = data.options.map((o, i) => `
                     <label class="flex items-center justify-between p-2.5 border rounded-lg bg-white cursor-pointer hover:border-blue-500">
@@ -502,10 +463,10 @@
                             <input type="radio" name="shippingOption" value="${i}" onchange='selectShipping(${JSON.stringify(o)})'>
                             <div>
                                 <div class="text-xs font-bold text-slate-900">${o.name} (${o.company})</div>
-                                <div class="text-[10px] text-gray-500">Prazo estimado: ${o.delivery_time} dias úteis</div>
+                                <div class="text-[10px] text-gray-500">Prazo estimado: \${o.delivery_time} dias úteis</div>
                             </div>
                         </div>
-                        <div class="text-xs font-bold text-blue-600">R$ ${brl(o.price)}</div>
+                        <div class="text-xs font-bold text-blue-600">R\$ \${brl(o.price)}</div>
                     </label>
                 `).join('');
                 document.getElementById('shippingBlock').classList.remove('hidden');
@@ -617,40 +578,6 @@
                     <div class="text-center space-y-4">
                         <h4 class="font-bold text-lg text-slate-900">PIX Gerado com Sucesso!</h4>
                         <p class="text-xs text-gray-500">Escaneie o QR Code no aplicativo do seu banco:</p>
-                        <img src="data:image/jpeg;base64,${qrBase64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-xl">
-                        <textarea readonly id="pixCopyCode" class="w-full text-[11px] p-2 border rounded-lg bg-gray-50 h-20">${qrCode}</textarea>
-                        <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopyCode').value); alert('Código PIX copiado!');" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-xs">Copiar Código PIX</button>
-                    </div>`;
-            } else if (data.pdf_url || data.transaction_details?.external_resource_url) {
-                const pdf = data.pdf_url || data.transaction_details.external_resource_url;
-                content.innerHTML = `
-                    <div class="text-center space-y-4">
-                        <h4 class="font-bold text-lg text-slate-900">Boleto Gerado!</h4>
-                        <p class="text-xs text-gray-500">Clique abaixo para abrir e pagar seu boleto:</p>
-                        <a href="${pdf}" target="_blank" class="block w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-xs">Abrir Boleto PDF</a>
-                    </div>`;
-            } else {
-                content.innerHTML = `
-                    <div class="text-center space-y-3 py-4">
-                        <i class="fa-solid fa-circle-check text-green-500 text-4xl"></i>
-                        <h4 class="font-bold text-lg text-slate-900">Pedido Confirmado!</h4>
-                        <p class="text-xs text-gray-600">Status do pagamento: <strong>${data.status || 'Aprovado / Em processamento'}</strong></p>
-                    </div>`;
-            }
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closePaymentResult() {
-            const modal = document.getElementById('paymentResultModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            toggleCart();
-        }
-
-        document.getElementById('custCEP').addEventListener('blur', lookupCep);
-        renderProducts(products);
-        updateCartUI();
-    </script>
-</body>
-</html>
+                        <img src="data:image/jpeg;base64,\${qrBase64}" alt="QR Code PIX" class="w-48 h-48 mx-auto border p-2 rounded-xl">
+                        <textarea readonly id="pixCopyCode" class="w-full text-[11px] p-2 border rounded-lg bg-gray-50 h-20">\${qrCode}</textarea>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById
