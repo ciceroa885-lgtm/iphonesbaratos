@@ -539,7 +539,7 @@
             errEl.classList.add('hidden');
             try {
                 if (!mpPublicKey) {
-                    const cfg = await fetch('/api/mp-config').then(r => r.json());
+                    const cfg = await fetch('/api/config').then(r => r.json());
                     if (!cfg.publicKey) throw new Error('Chave pública do Mercado Pago não configurada.');
                     mpPublicKey = cfg.publicKey;
                 }
