@@ -1,47 +1,16 @@
-
 import { randomUUID } from 'node:crypto';
 
-const catalog = [
-  ['iPhone 18 Pro Max Titanio Preto 256GB',12150],
-  ['iPhone 18 Pro Titanio Branco 256GB',10185],
-  ['iPhone 17 Pro Titanio Azul 256GB',7355],
-  ['iPhone 17 Pro Black 256GB',7355],
-  ['iPhone 17 Pro Branco 256GB',7355],
-  ['iPhone 16 Pro Verde Azul 128GB',5499],
-  ['iPhone 16 Pro Rosa 128GB',5499],
-  ['iPhone 16 Plus Ultramarinho 128GB',4899],
-  ['iPhone 16 128GB Preto',4329],
-  ['iPhone 15 Pro Verde 128GB',4599],
-  ['iPhone 15 Plus Azul 128GB',4199],
-  ['iPhone 15 Plus Rosa 128GB',4199],
-  ['iPhone 15 128GB Amarelo',3879],
-  ['iPhone 14 Plus Vermelho 128GB CPO',3620],
-  ['iPhone 14 Plus Azul 128GB CPO',3620],
-  ['iPhone 14 Meia-Noite 128GB',3490],
-  ['iPhone 13 Azul 128GB CPO',3150],
-  ['iPhone 13 Rosa 128GB',2890],
-  ['iPhone 13 Verde 128GB',2890],
-  ['iPhone 13 Estelar 128GB',2890],
-  ['iPhone 13 Meia Noite 128GB',2890],
-  ['iPhone 11 Verde 128GB',1690],
-  ['iPhone 11 Roxo 128GB',1690],
-  ['iPhone 11 Branco 128GB',1690],
-  ['iPhone 11 Preto 256GB',1429]
-];
-
-const PRODUCTS = Object.fromEntries(
-  catalog.map(([name, price], i) => [
-    i + 1,
-    {
-      name,
-      price,
-      weight: 0.8,
-      width: 18,
-      height: 10,
-      length: 28
-    }
-  ])
-);
+async function loadProducts() {
+  const rows = await supabaseRequest(
+    'products?active=eq.true&select=id,name,price,promotional_price'
+  );
+  if (!Array.isArray(rows)) throw new Error('Catálogo indisponível.');
+  return Object.fromEntries(rows.map(p => {
+    const price = Number(p.promotional_price ?? p.price);
+    if (!Number.isFinite(price) || price <= 0) throw new Error('Preço inválido no catálogo.');
+    return [p.id, { name: p.name, price, weight: 0.8, width: 18, height: 10, length: 28 }];
+  }));
+}
 
 const ME_URL =
   'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate';
@@ -55,7 +24,7 @@ const cleanCep = v =>
 const money = n =>
   Number(Number(n).toFixed(2));
 
-function validCart(cart) {
+function validCart(cart, PRODUCTS) {
   if (!Array.isArray(cart) || !cart.length) {
     throw new Error('Carrinho vazio.');
   }
@@ -114,7 +83,7 @@ async function getDestinationCity(cep) {
   };
 }
 
-async function recalculateFreight(cep, cart, shippingId) {
+async function recalculateFreight(cep, cart, shippingId, PRODUCTS) {
   const origin = cleanCep(process.env.STORE_ORIGIN_CEP);
   const destination = cleanCep(cep);
 
@@ -337,7 +306,8 @@ export default async function handler(req, res) {
     }
 
     const body = req.body || {};
-    const cart = validCart(body.cart);
+    const PRODUCTS = await loadProducts();
+    const cart = validCart(body.cart, PRODUCTS);
     const customer = body.customer || {};
 
     if (
@@ -361,10 +331,17 @@ export default async function handler(req, res) {
     const freight = await recalculateFreight(
       customer.cep,
       cart,
-      body.shippingId
+      body.shippingId,
+      PRODUCTS
     );
 
     const total = money(subtotal + freight.price);
+    if (typeof body.expectedTotal !== 'number' ||
+        !Number.isFinite(body.expectedTotal) || money(body.expectedTotal) !== total) {
+      return res.status(409).json({
+        erro: 'O preço ou frete mudou. Atualize a página e recalcule o frete antes de pagar.'
+      });
+    }
     const payment = body.payment || {};
 
     if (!payment.payment_method_id) {
