@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const response = await fetch(
       `${url.replace(/\/$/, '')}/rest/v1/products` +
       '?active=eq.true' +
-      '&select=id,name,price,promotional_price,category,warranty,img' +
+      '&select=id,name,price,promotional_price,category,warranty,img,indisponivel' +
       '&order=id.asc',
       {
         headers: {
@@ -46,7 +46,8 @@ export default async function handler(req, res) {
       ),
       category: product.category,
       warranty: product.warranty,
-      img: product.img
+      img: product.img,
+      indisponivel: product.indisponivel
     }));
 
     return res.status(200).json(products);
