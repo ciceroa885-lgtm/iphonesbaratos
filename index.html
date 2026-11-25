@@ -312,7 +312,7 @@
                 cart = stored.filter(x => Number.isInteger(x.id) && Number.isInteger(x.quantity) && x.quantity > 0)
                     .reduce((acc, x) => {
                         const p = products.find(p => p.id === x.id);
-                        if (p) {
+                        if (p && p.indisponivel === false) {
                             const existing = acc.find(i => i.id === p.id);
                             if (existing) existing.quantity = Math.min(10, existing.quantity + x.quantity);
                             else acc.push({...p, quantity: Math.min(10, x.quantity)});
@@ -353,8 +353,9 @@
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
                         <div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>
+                        ${p.indisponivel !== false ? '<div class="text-red-600 font-bold text-sm mt-1">INDISPONÍVEL</div>' : ''}
                     </div>
-                    <button onclick="addToCart(${p.id})" class="mt-4 w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
+                    <button type="button" ${p.indisponivel !== false ? 'disabled aria-disabled="true"' : `onclick="addToCart(${p.id})"`} class="mt-4 w-full ${p.indisponivel !== false ? 'bg-gray-300 cursor-not-allowed' : 'bg-slate-900 hover:bg-blue-600'} text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
                 </div>`).join('');
         }
 
@@ -392,7 +393,7 @@
 
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
-            if (!prod) return;
+            if (!prod || prod.indisponivel !== false) return alert('Produto indisponível para compra.');
             const existing = cart.find(item => item.id === id);
             if (existing) {
                 if (existing.quantity >= 10) return alert('Limite de 10 unidades por produto.');
@@ -765,4 +766,3 @@
     </script>
 </body>
 </html>
-
