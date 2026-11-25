@@ -81,7 +81,7 @@ function validCart(cart) {
 }
 
 const LOCAL_SHIPPING_ID = 99999;
-const LOCAL_SHIPPING_PRICE = 18.50;
+const LOCAL_SHIPPING_PRICE = 0;
 const LOCAL_CITIES = new Set(['goiania', 'aparecida de goiania']);
 
 function normalizeCity(value) {
