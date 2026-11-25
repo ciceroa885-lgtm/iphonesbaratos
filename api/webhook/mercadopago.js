@@ -1,11 +1,10 @@
-
-import { createHmac, timingSafeEqual } from 'node:crypto';
+mport { createHmac, timingSafeEqual } from 'node:crypto';
 import { enviarWhatsApp } from '../whatsapp.js';
 
 const MP_URL = 'https://api.mercadopago.com/v1/payments';
 
 const WHATSAPP_DESTINO = '5562992208912';
-const WHATSAPP_TEMPLATE = 'jaspers_market_order_confirmation_v1';
+const WHATSAPP_TEMPLATE = 'iphonesbaratos_pagamento_aprovado';
 
 function validateSignature(req, secret) {
   const signature = req.headers['x-signature'];
@@ -98,7 +97,7 @@ async function supabaseRequest(path, options = {}) {
 async function findOrder(reference) {
   const orders = await supabaseRequest(
     `orders?external_reference=eq.${encodeURIComponent(reference)}` +
-    '&select=id,total,payment_id,payment_status,customer_name,external_reference,paid_at'
+    '&select=id,total,payment_id,payment_status,customer_name,customer_phone,external_reference,paid_at,created_at,items,shipping_address,subtotal,shipping_amount,payment_method'
   );
 
   if (!Array.isArray(orders) || orders.length !== 1) {
@@ -248,38 +247,146 @@ async function notificarCompraAprovada(order, payment) {
     return;
   }
 
-  const dataPagamento =
-    payment.date_approved ||
-    order.paid_at ||
-    new Date().toISOString();
-
-  const dataFormatada = new Intl.DateTimeFormat(
-    'pt-BR',
-    {
-      timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }
-  ).format(new Date(dataPagamento));
-
   try {
+    // Produtos adquiridos
+    const itens = Array.isArray(order.items)
+      ? order.items
+      : [];
+
+    const produtos = itens
+      .map(item =>
+        `${item.name || 'Produto não informado'} (${item.quantity} un.)`
+      )
+      .join('; ') || 'Não informado';
+
+    // Quantidade total de produtos
+    const quantidade = itens.length
+      ? itens.reduce(
+          (total, item) =>
+            total + Number(item.quantity || 0),
+          0
+        )
+      : 'Não informada';
+
+    // Formatação monetária brasileira
+    const formatarValor = valor => {
+      if (
+        valor === null ||
+        valor === undefined ||
+        valor === '' ||
+        !Number.isFinite(Number(valor))
+      ) {
+        return 'Não informado';
+      }
+
+      return Number(valor).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
+
+    // Endereço completo de entrega
+    const endereco = order.shipping_address || {};
+
+    const enderecoCompleto = [
+      endereco.street,
+      endereco.number,
+      endereco.complement,
+      endereco.neighborhood,
+      [endereco.city, endereco.state]
+        .filter(Boolean)
+        .join(' - '),
+      endereco.cep
+        ? `CEP: ${endereco.cep}`
+        : null
+    ].filter(Boolean).join(', ') || 'Não informado';
+
+    // Data da compra
+    const dataCompra =
+      order.created_at ||
+      payment.date_approved ||
+      order.paid_at;
+
+    const dataValida = dataCompra
+      ? new Date(dataCompra)
+      : null;
+
+    const dataFormatada =
+      dataValida && !Number.isNaN(dataValida.getTime())
+        ? new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }).format(dataValida)
+        : 'Não informada';
+
+    // Identificação da forma de pagamento
+    const metodo =
+      payment.payment_method_id ||
+      order.payment_method ||
+      '';
+
+    const tipo = payment.payment_type_id || '';
+
+    let formaPagamento;
+
+    if (metodo === 'pix') {
+      formaPagamento = 'PIX';
+
+    } else if (
+      tipo === 'ticket' ||
+      metodo === 'bolbradesco' ||
+      metodo === 'boleto'
+    ) {
+      formaPagamento = 'Boleto bancário';
+
+    } else if (tipo === 'credit_card') {
+      formaPagamento = 'Cartão de crédito';
+
+    } else if (tipo === 'debit_card') {
+      formaPagamento = 'Cartão de débito';
+
+    } else {
+      formaPagamento = metodo || 'Não informado';
+    }
+
+    // Variáveis do template personalizado da Meta
+    const parametros = [
+      order.customer_name || 'Não informado',
+      order.customer_phone || 'Não informado',
+      produtos,
+      String(quantidade),
+      formatarValor(order.subtotal),
+      formatarValor(order.shipping_amount),
+      formatarValor(payment.transaction_amount),
+      formaPagamento,
+      dataFormatada,
+      enderecoCompleto,
+      order.external_reference
+    ].map(valor =>
+      String(valor ?? '')
+        .replace(/\s+/g, ' ')
+        .trim() || 'Não informado'
+    );
+
+    // Envio exclusivo ao WhatsApp da Totus
     const resultado = await enviarWhatsApp({
       telefone: WHATSAPP_DESTINO,
       template: WHATSAPP_TEMPLATE,
-      idioma: 'en_US',
-      parametros: [
-        order.customer_name,
-        order.external_reference,
-        dataFormatada
-      ]
+      idioma: 'pt_BR',
+      parametros
     });
 
-    await atualizarNotificacao(notificacao.notification_id, {
-      status: 'accepted',
-      message_id: resultado.messageId,
-      last_error: null
-    });
+    // Registro da confirmação de envio
+    await atualizarNotificacao(
+      notificacao.notification_id,
+      {
+        status: 'accepted',
+        message_id: resultado.messageId,
+        last_error: null
+      }
+    );
 
     console.log('WhatsApp aceito pela Meta', {
       paymentId: String(payment.id),
@@ -287,10 +394,13 @@ async function notificarCompraAprovada(order, payment) {
     });
 
   } catch (error) {
-    await atualizarNotificacao(notificacao.notification_id, {
-      status: 'failed',
-      last_error: error.message
-    });
+    await atualizarNotificacao(
+      notificacao.notification_id,
+      {
+        status: 'failed',
+        last_error: error.message
+      }
+    );
 
     console.error('Falha na notificação WhatsApp:', {
       paymentId: String(payment.id),
