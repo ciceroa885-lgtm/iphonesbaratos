@@ -2,13 +2,13 @@ import { randomUUID } from 'node:crypto';
 
 async function loadProducts() {
   const rows = await supabaseRequest(
-    'products?active=eq.true&select=id,name,price,promotional_price'
+    'products?active=eq.true&select=id,name,price,promotional_price,indisponivel'
   );
   if (!Array.isArray(rows)) throw new Error('Catálogo indisponível.');
   return Object.fromEntries(rows.map(p => {
     const price = Number(p.promotional_price ?? p.price);
     if (!Number.isFinite(price) || price <= 0) throw new Error('Preço inválido no catálogo.');
-    return [p.id, { name: p.name, price, weight: 0.8, width: 18, height: 10, length: 28 }];
+    return [p.id, { name: p.name, price, indisponivel: p.indisponivel, weight: 0.8, width: 18, height: 10, length: 28 }];
   }));
 }
 
@@ -35,6 +35,10 @@ function validCart(cart, PRODUCTS) {
 
     if (!Number.isInteger(id) || !PRODUCTS[id]) {
       throw new Error('Produto inválido.');
+    }
+
+    if (PRODUCTS[id].indisponivel !== false) {
+      throw new Error('Produto indisponível para compra: ' + PRODUCTS[id].name);
     }
 
     if (
