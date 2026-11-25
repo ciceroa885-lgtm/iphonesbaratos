@@ -111,10 +111,10 @@
 
         <nav class="border-t border-gray-100 bg-white/50 backdrop-blur-md overflow-x-auto hide-scrollbar py-2.5">
             <div class="max-w-7xl mx-auto px-4 flex items-center gap-6 text-xs font-medium whitespace-nowrap">
-                <button onclick="filterCategory('all')" class="text-blue-600 font-semibold hover:underline">Todos os iPhones</button>
-                <button onclick="filterCategory('lacrados')" class="text-gray-600 hover:text-slate-900">iPhones Lacrados (1 Ano Garantia)</button>
-                <button onclick="filterCategory('seminovos')" class="text-gray-600 hover:text-slate-900">iPhones Seminovos Premium</button>
-                <button onclick="filterCategory('cpo')" class="text-gray-600 hover:text-slate-900">Linha CPO / Recondicionados</button>
+                <button type="button" data-catalog-category="all" aria-pressed="true" onclick="filterCategory('all')" class="text-blue-600 font-semibold hover:underline">Todos os iPhones</button>
+                <button type="button" data-catalog-category="lacrados" aria-pressed="false" onclick="filterCategory('lacrados')" class="text-gray-600 hover:text-slate-900">iPhones Lacrados (1 Ano Garantia)</button>
+                <button type="button" data-catalog-category="seminovos" aria-pressed="false" onclick="filterCategory('seminovos')" class="text-gray-600 hover:text-slate-900">iPhones Seminovos Premium</button>
+                <button type="button" data-catalog-category="cpo" aria-pressed="false" onclick="filterCategory('cpo')" class="text-gray-600 hover:text-slate-900">Linha CPO / Recondicionados</button>
             </div>
         </nav>
     </header>
@@ -358,8 +358,37 @@
                 </div>`).join('');
         }
 
-        function filterCategory(cat) { renderProducts(cat === 'all' ? products : products.filter(p => p.category === cat)); }
-        function filterProducts() { const q = document.getElementById('searchInput').value.toLowerCase(); renderProducts(products.filter(p => p.name.toLowerCase().includes(q))); }
+        let selectedCategory = 'all';
+        let catalogReady = false;
+
+        function filterCategory(cat) {
+            selectedCategory = cat;
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('[data-catalog-category]').forEach(button => {
+                const active = button.dataset.catalogCategory === cat;
+                button.classList.toggle('text-blue-600', active);
+                button.classList.toggle('font-semibold', active);
+                button.classList.toggle('text-gray-600', !active);
+                button.classList.toggle('hover:text-slate-900', !active);
+                button.setAttribute('aria-pressed', String(active));
+            });
+            filterProducts();
+            const catalog = document.getElementById('catalogo');
+            const header = document.querySelector('header');
+            catalog.style.scrollMarginTop = `${header.offsetHeight + 12}px`;
+            catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function filterProducts() {
+            if (!catalogReady) return;
+            const q = document.getElementById('searchInput').value.trim().toLowerCase();
+            const items = products.filter(p =>
+                (selectedCategory === 'all' || p.category === selectedCategory) &&
+                p.name.toLowerCase().includes(q)
+            );
+            renderProducts(items);
+            if (!items.length) document.getElementById('productGrid').textContent = 'Nenhum produto encontrado.';
+        }
 
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
@@ -724,7 +753,8 @@
                 if (!response.ok || !Array.isArray(data)) throw new Error('Catálogo indisponível.');
                 products = data;
                 restoreCart();
-                renderProducts(products);
+                catalogReady = true;
+                filterProducts();
                 updateCartUI();
             } catch (error) {
                 grid.textContent = 'Catálogo temporariamente indisponível. Atualize a página para tentar novamente.';
@@ -735,3 +765,4 @@
     </script>
 </body>
 </html>
+
