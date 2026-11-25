@@ -352,7 +352,10 @@
                             <img src="${p.img}" alt="${p.name}" class="max-h-44 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500';">
                         </div>
                         <h3 class="font-bold text-sm text-slate-900 mb-1">${p.name}</h3>
-                        <div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>
+                        ${Number(p.original_price) > Number(p.price) ? `
+                            <div class="flex items-center gap-2 flex-wrap"><span class="text-xs text-gray-500 line-through">De R$ ${brl(p.original_price)}</span><span class="text-xs font-bold text-red-600">${Math.floor((1 - Number(p.price) / Number(p.original_price)) * 100)}% OFF</span></div>
+                            <div class="text-lg font-extrabold text-green-700">Por R$ ${brl(p.price)}</div>
+                            <div class="text-xs text-green-700">Economize R$ ${brl(Number(p.original_price) - Number(p.price))}</div>` : `<div class="text-lg font-extrabold text-slate-900">R$ ${brl(p.price)}</div>`}
                         ${p.indisponivel !== false ? '<div class="text-red-600 font-bold text-sm mt-1">INDISPONÍVEL</div>' : ''}
                     </div>
                     <button type="button" ${p.indisponivel !== false ? 'disabled aria-disabled="true"' : `onclick="addToCart(${p.id})"`} class="mt-4 w-full ${p.indisponivel !== false ? 'bg-gray-300 cursor-not-allowed' : 'bg-slate-900 hover:bg-blue-600'} text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2"><i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho</button>
