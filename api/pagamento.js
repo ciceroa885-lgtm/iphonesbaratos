@@ -2,13 +2,13 @@ import { randomUUID } from 'node:crypto';
 
 async function loadProducts() {
   const rows = await supabaseRequest(
-    'products?active=eq.true&select=id,name,price,promotional_price,indisponivel'
+    'products?active=eq.true&select=id,name,price,promotional_price,indisponivel,img'
   );
   if (!Array.isArray(rows)) throw new Error('Catálogo indisponível.');
   return Object.fromEntries(rows.map(p => {
     const price = Number(p.promotional_price ?? p.price);
     if (!Number.isFinite(price) || price <= 0) throw new Error('Preço inválido no catálogo.');
-    return [p.id, { name: p.name, price, indisponivel: p.indisponivel, weight: 0.8, width: 18, height: 10, length: 28 }];
+    return [p.id, { name: p.name, price, img: p.img, indisponivel: p.indisponivel, weight: 0.8, width: 18, height: 10, length: 28 }];
   }));
 }
 
@@ -24,11 +24,36 @@ const cleanCep = v =>
 const money = n =>
   Number(Number(n).toFixed(2));
 
+        const COLOR_ALIASES = {
+            gold:'Dourado', dourado:'Dourado', dourada:'Dourado', verde:'Verde', green:'Verde',
+            preto:'Preto', black:'Preto', branca:'Branco', branco:'Branco', white:'Branco',
+            azul:'Azul', blue:'Azul', roxo:'Roxo', purple:'Roxo', rosa:'Rosa', pink:'Rosa',
+            prata:'Prata', silver:'Prata', cinza:'Cinza', gray:'Cinza', grey:'Cinza',
+            grafite:'Grafite', graphite:'Grafite', vermelho:'Vermelho', red:'Vermelho',
+            amarelo:'Amarelo', yellow:'Amarelo', laranja:'Laranja', orange:'Laranja',
+            titanium:'Titânio', titanio:'Titânio', natural:'Natural', desert:'Deserto', deserto:'Deserto',
+            midnight:'Meia-noite', starlight:'Estelar', ultramarine:'Ultramarino', teal:'Verde-azulado'
+        };
+        function productColors(product) {
+            const filename = String(product.img || '').split(/[?#]/)[0].split('/').pop();
+            const normalized = filename.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+            const tokens = normalized.replace(/\.[a-z0-9]+$/,'').split(/[^a-z0-9]+/);
+            const colors = [];
+            for (let i=0; i<tokens.length; i++) {
+                const pair = tokens.slice(i,i+2).join('-');
+                const compound = {'rose-gold':'Rosa dourado','space-gray':'Cinza espacial','space-grey':'Cinza espacial','midnight-green':'Verde meia-noite','deep-purple':'Roxo profundo','sierra-blue':'Azul Sierra','pacific-blue':'Azul Pacífico','natural-titanium':'Titânio natural','desert-titanium':'Titânio deserto','black-titanium':'Titânio preto','white-titanium':'Titânio branco','blue-titanium':'Titânio azul','titanio-natural':'Titânio natural','titanio-preto':'Titânio preto','titanio-branco':'Titânio branco','titanio-azul':'Titânio azul','titanio-deserto':'Titânio deserto','meia-noite':'Meia-noite'};
+                if (Object.hasOwn(compound,pair)) { colors.push(compound[pair]); i++; }
+                else if (Object.hasOwn(COLOR_ALIASES,tokens[i])) colors.push(COLOR_ALIASES[tokens[i]]);
+            }
+            return [...new Set(colors)];
+        }
+
 function validCart(cart, PRODUCTS) {
   if (!Array.isArray(cart) || !cart.length) {
     throw new Error('Carrinho vazio.');
   }
 
+  const totals = new Map();
   return cart.map(item => {
     const id = Number(item.id);
     const quantity = Number(item.quantity);
@@ -49,7 +74,14 @@ function validCart(cart, PRODUCTS) {
       throw new Error('Quantidade inválida.');
     }
 
-    return { id, quantity };
+    const color = item.color;
+    if (typeof color !== 'string' || !productColors(PRODUCTS[id]).includes(color)) {
+      throw new Error('Selecione uma cor válida para: ' + PRODUCTS[id].name);
+    }
+    const accumulated = (totals.get(id) || 0) + quantity;
+    if (accumulated > 10) throw new Error('Limite de 10 unidades por produto.');
+    totals.set(id, accumulated);
+    return { id, quantity, color };
   });
 }
 
@@ -362,10 +394,11 @@ export default async function handler(req, res) {
 
     const externalReference = `IPB-${idempotencyKey}`;
 
-    const orderItems = cart.map(({ id, quantity }) => ({
+    const orderItems = cart.map(({ id, quantity, color }) => ({
       id,
       name: PRODUCTS[id].name,
       quantity,
+      color,
       unit_price: PRODUCTS[id].price
     }));
 
@@ -428,7 +461,7 @@ export default async function handler(req, res) {
       transaction_amount: total,
       description:
         `Pedido IPHONESBARATOS - ${
-          cart.map(i => PRODUCTS[i.id].name).join(', ')
+          cart.map(i => `${PRODUCTS[i.id].name} (${i.color})`).join(', ')
         }`.slice(0, 240),
 
       payment_method_id: payment.payment_method_id,
