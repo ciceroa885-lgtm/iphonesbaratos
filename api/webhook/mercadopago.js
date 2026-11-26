@@ -255,7 +255,7 @@ async function notificarCompraAprovada(order, payment) {
 
     const produtos = itens
       .map(item =>
-        `${item.name || 'Produto não informado'} (${item.quantity} un.)`
+        `${item.name || 'Produto não informado'}${item.color ? ` — Cor: ${item.color}` : ''} (${item.quantity} un.)`
       )
       .join('; ') || 'Não informado';
 
