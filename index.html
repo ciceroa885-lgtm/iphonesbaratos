@@ -361,9 +361,24 @@
             const colors = productColors(product);
             return colors.includes(previous) ? previous : colors.length === 1 ? colors[0] : '';
         }
-        function colorsReady() {
-            return cart.every(item => productColors(item).includes(item.color));
+        function variantAvailable(p, v) {
+            return p.indisponivel === false && v && v.indisponivel === false && Number.isInteger(v.stock) && v.stock > 0;
         }
+        function cartEntry(p, v, color, quantity) {
+            return v ? {...p, variant_id:v.id, color:v.color, price:v.price, original_price:v.original_price, promotional_price:v.promotional_price, img:v.img || p.img, stock:v.stock, quantity} : {...p, variant_id:null, color, quantity};
+        }
+        function colorsReady() {
+            return cart.every(item => {
+                const p = products.find(p => p.id === item.id);
+                if (!p || p.indisponivel !== false) return false;
+                if (p.has_variants || p.variants?.length) {
+                    const v = p.variants?.find(v => v.id === item.variant_id);
+                    return variantAvailable(p,v) && v.color === item.color && cart.filter(x => x.id === item.id && x.variant_id === v.id).reduce((n,x)=>n+x.quantity,0) <= v.stock;
+                }
+                return productColors(p).includes(item.color) && (p.stock == null || cart.filter(x=>x.id===p.id).reduce((n,x)=>n+x.quantity,0)<=p.stock);
+            });
+        }
+
         function requireColors() {
             if (colorsReady()) return true;
             alert('Selecione uma cor disponível para cada produto. Se não houver opções, entre em contato com a loja.');
@@ -371,14 +386,27 @@
         }
         function changeColor(idx, color) {
             const item = cart[idx];
-            if (!item || !productColors(item).includes(color)) return;
-            const other = cart.findIndex((x,i) => i !== idx && x.id === item.id && x.color === color);
-            if (other >= 0) { cart[other].quantity += item.quantity; cart.splice(idx,1); }
-            else item.color = color;
+            if (!item) return;
+            const p = products.find(p => p.id === item.id);
+            if (!p || p.indisponivel !== false) return;
+            const v = p.variants?.find(v => String(v.id) === color);
+            if (p.has_variants || p.variants?.length) {
+                if (!variantAvailable(p,v)) return updateCartUI();
+            } else if (!productColors(p).includes(color)) return;
+            const chosenColor = v ? v.color : color;
+            const other = cart.findIndex((x,i) => i !== idx && x.id === item.id && x.color === chosenColor);
+            const quantity = item.quantity + (other >= 0 ? cart[other].quantity : 0);
+            if (v && quantity > v.stock) { updateCartUI(); return alert('Estoque insuficiente para esta cor.'); }
+            if (other >= 0) { cart[other].quantity = quantity; cart.splice(idx,1); }
+            else cart[idx] = cartEntry(p,v,chosenColor,quantity);
             checkoutStarted = false;
             resetCheckoutState(); saveCart(); updateCartUI();
         }
+
         function colorSelector(item, idx) {
+            if (item.variant_id != null) {
+                return `<label class="block text-xs font-medium mt-2" for="cartColor${idx}">Escolha a cor:</label><select id="cartColor${idx}" onchange="changeColor(${idx}, this.value)" class="w-full border rounded-lg p-2 mt-1 text-xs bg-white">${item.variants.map(v=>`<option value="${v.id}" ${v.id===item.variant_id?'selected':''} ${!variantAvailable(item,v)?'disabled':''}>${escapeHtml(v.color)} — R$ ${brl(v.price)}</option>`).join('')}</select>`;
+            }
             const colors = productColors(item);
             if (!colors.length) return '<p class="text-xs text-red-600 mt-2">Cor não cadastrada. Consulte a loja.</p>';
             return `<label for="cartColor${idx}" class="block text-xs font-medium mt-2">Escolha a cor:</label>
@@ -390,30 +418,33 @@
         }
 
         function restoreCart() {
-        try {
-            const stored = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
-            if (Array.isArray(stored)) {
-                cart = stored.filter(x => Number.isInteger(x.id) && Number.isInteger(x.quantity) && x.quantity > 0)
-                    .reduce((acc, x) => {
-                        const p = products.find(p => p.id === x.id);
-                        if (p && !p.has_variants && !p.variants?.length && p.indisponivel === false) {
-                            const color = defaultColor(p, x.color);
-                            const remaining = 10 - acc.filter(i => i.id === p.id).reduce((n,i) => n+i.quantity,0);
-                            const quantity = Math.min(remaining, x.quantity);
-                            if (quantity <= 0) return acc;
-                            const existing = acc.find(i => i.id === p.id && i.color === color);
-                            if (existing) existing.quantity += quantity;
-                            else acc.push({...p, color, quantity});
-                        }
-                        return acc;
-                    }, []);
-            }
-        } catch (_) { cart = []; }
-
+            try {
+                const stored = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
+                cart = [];
+                if (!Array.isArray(stored)) return;
+                for (const x of stored) {
+                    if (!Number.isInteger(x.id) || !Number.isInteger(x.quantity) || x.quantity < 1) continue;
+                    const p = products.find(p=>p.id===x.id);
+                    if (!p || p.indisponivel !== false) continue;
+                    const has = p.has_variants || p.variants?.length;
+                    const v = has ? p.variants?.find(v=>v.id===x.variant_id) : null;
+                    if (has && !variantAvailable(p,v)) continue;
+                    if (!has && x.variant_id != null) continue;
+                    const color = v ? v.color : defaultColor(p,x.color);
+                    const existing = cart.find(i=>i.id===p.id && i.color===color);
+                    const total = cart.filter(i=>i.id===p.id).reduce((n,i)=>n+i.quantity,0);
+                    const limit = v ? v.stock-(existing?.quantity||0) : p.stock == null ? 10 : p.stock-total;
+                    const quantity = Math.min(x.quantity,10-total,limit);
+                    if (quantity<=0) continue;
+                    if (existing) existing.quantity+=quantity;
+                    else cart.push(cartEntry(p,v,color,quantity));
+                }
+            } catch (_) { cart=[]; }
+            finally { saveCart(); }
         }
 
         function saveCart() {
-            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity, color}) => ({id, quantity, color})))); } catch (_) {}
+            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity, color, variant_id}) => ({id, quantity, color, variant_id})))); } catch (_) {}
         }
 
         function startCheckout() {
@@ -442,7 +473,7 @@
             const variant = variants.find(v => v.id === selectedVariants.get(product.id)) || variants[0];
             return {...product, price: variant.price, original_price: variant.original_price,
                 promotional_price: variant.promotional_price, img: variant.img || product.img,
-                indisponivel: true, selectedVariant: variant};
+                indisponivel: !variantAvailable(product, variant), selectedVariant: variant};
         }
         function catalogVariantSelector(p) {
             if (!p.selectedVariant) return '';
@@ -506,13 +537,17 @@
 
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
-            if (!prod || prod.has_variants || prod.variants?.length || prod.indisponivel !== false) return alert('Produto indisponível para compra.');
-            const color = defaultColor(prod);
+            if (!prod || prod.indisponivel !== false) return alert('Produto indisponível para compra.');
+            const has = prod.has_variants || prod.variants?.length;
+            const v = has ? catalogView(prod).selectedVariant : null;
+            if (has && !variantAvailable(prod,v)) return alert('Cor indisponível para compra.');
+            const color = v ? v.color : defaultColor(prod);
             const totalQuantity = cart.filter(item => item.id === id).reduce((n,item) => n+item.quantity,0);
             if (totalQuantity >= 10) return alert('Limite de 10 unidades por produto.');
             const existing = cart.find(item => item.id === id && item.color === color);
+            if (v ? (existing?.quantity||0)>=v.stock : prod.stock != null && totalQuantity>=prod.stock) return alert('Estoque insuficiente.');
             if (existing) existing.quantity++;
-            else cart.push({...prod, color, quantity:1});
+            else cart.push(cartEntry(prod,v,color,1));
             checkoutStarted = false;
             resetCheckoutState(); saveCart(); updateCartUI();
             document.getElementById('cartModal').classList.remove('hidden');
@@ -530,6 +565,7 @@
             const next = item.quantity + delta;
             if (next < 1) return removeFromCart(idx);
             if (cart.filter(x => x.id === item.id).reduce((n,x) => n+x.quantity,0) + delta > 10) return alert('Limite de 10 unidades por produto.');
+            if (delta > 0 && item.stock != null && (item.variant_id != null ? next : cart.filter(x=>x.id===item.id).reduce((n,x)=>n+x.quantity,0)+delta) > item.stock) return alert('Estoque insuficiente.');
             item.quantity = next;
             resetCheckoutState(); saveCart(); updateCartUI();
         }
@@ -541,8 +577,8 @@
                 container.innerHTML = '<div class="text-center py-8"><i class="fa-solid fa-basket-shopping text-gray-300 text-4xl mb-2"></i><p class="text-xs text-gray-500">Seu carrinho está vazio no momento.</p></div>';
             } else {
                 container.innerHTML = cart.map((item, idx) => `<div class="flex gap-3 border border-gray-200 bg-white p-3 rounded-xl shadow-sm">
-                    <img src="${item.img}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
-                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">${item.name}</h5>
+                    <img src="${escapeHtml(item.img)}" alt="" class="w-16 h-20 object-contain rounded-lg bg-gray-50">
+                    <div class="flex-1 min-w-0"><h5 class="font-bold text-xs text-slate-900">${escapeHtml(item.name)}</h5>
                     <p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price * item.quantity)}</p>
                     <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
                     <span class="text-sm font-semibold">${item.quantity}</span><button type="button" onclick="changeQuantity(${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
@@ -613,7 +649,7 @@
             const btn = document.getElementById('btnCalcFrete');
             btn.disabled = true; btn.innerText = 'Calculando...';
             try {
-                const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitary_value: item.price, ...SHIPPING_DEFAULTS }));
+                const productsForShipping = cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, color: item.color, variant_id: item.variant_id, unitary_value: item.price, ...SHIPPING_DEFAULTS }));
                 const r = await fetch('/api/frete', { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }, body: JSON.stringify({ cep: c.cep, products: productsForShipping, requestId: crypto.randomUUID() }) });
                 const data = await r.json();
                 if (!r.ok) throw new Error(data.erro || 'Não foi possível calcular o frete.');
@@ -725,7 +761,7 @@
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        cart: cart.map(item => ({ id: item.id, quantity: item.quantity, color: item.color })),
+                                        cart: cart.map(item => ({ id: item.id, quantity: item.quantity, color: item.color, variant_id: item.variant_id })),
                                         customer: c,
                                         shippingId: selectedShipping.id,
                                         expectedTotal: total,
