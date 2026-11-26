@@ -2,13 +2,22 @@ import { randomUUID } from 'node:crypto';
 
 async function loadProducts() {
   const rows = await supabaseRequest(
-    'products?active=eq.true&select=id,name,price,promotional_price,indisponivel,img'
+    'products?active=eq.true&select=id,name,price,promotional_price,indisponivel,img,stock'
   );
   if (!Array.isArray(rows)) throw new Error('Catálogo indisponível.');
+  const variants = await supabaseRequest(
+    'product_variants?select=id,product_id,color,price,promotional_price,stock,active,indisponivel'
+  );
+  if (!Array.isArray(variants)) throw new Error('Variações indisponíveis.');
+  const byProduct = new Map();
+  for (const v of variants) {
+    if (!byProduct.has(v.product_id)) byProduct.set(v.product_id, []);
+    byProduct.get(v.product_id).push(v);
+  }
   return Object.fromEntries(rows.map(p => {
     const price = Number(p.promotional_price ?? p.price);
     if (!Number.isFinite(price) || price <= 0) throw new Error('Preço inválido no catálogo.');
-    return [p.id, { name: p.name, price, img: p.img, indisponivel: p.indisponivel, weight: 0.8, width: 18, height: 10, length: 28 }];
+    return [p.id, { name: p.name, price, img: p.img, stock: p.stock, variants: byProduct.get(p.id) || [], indisponivel: p.indisponivel, weight: 0.8, width: 18, height: 10, length: 28 }];
   }));
 }
 
@@ -54,6 +63,7 @@ function validCart(cart, PRODUCTS) {
   }
 
   const totals = new Map();
+  const variantTotals = new Map();
   return cart.map(item => {
     const id = Number(item.id);
     const quantity = Number(item.quantity);
@@ -74,14 +84,34 @@ function validCart(cart, PRODUCTS) {
       throw new Error('Quantidade inválida.');
     }
 
+    const product = PRODUCTS[id];
     const color = item.color;
-    if (typeof color !== 'string' || !productColors(PRODUCTS[id]).includes(color)) {
-      throw new Error('Selecione uma cor válida para: ' + PRODUCTS[id].name);
+    let variantId = null;
+    let unitPrice = product.price;
+    if (product.variants.length) {
+      variantId = item.variant_id;
+      if (!Number.isSafeInteger(variantId) || variantId <= 0) {
+        throw new Error('Selecione uma variação válida para: ' + product.name);
+      }
+      const variant = product.variants.find(v => v.id === variantId);
+      if (!variant || variant.active !== true || variant.indisponivel !== false || variant.color !== color) {
+        throw new Error('Variação indisponível ou inválida: ' + product.name);
+      }
+      unitPrice = Number(variant.promotional_price ?? variant.price);
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) throw new Error('Preço inválido da variação.');
+      const count = (variantTotals.get(variantId) || 0) + quantity;
+      if (variant.stock == null || count > variant.stock) throw new Error('Estoque insuficiente ou não cadastrado: ' + color);
+      variantTotals.set(variantId, count);
+    } else {
+      if (item.variant_id != null || typeof color !== 'string' || !productColors(product).includes(color)) {
+        throw new Error('Selecione uma cor válida para: ' + product.name);
+      }
     }
     const accumulated = (totals.get(id) || 0) + quantity;
     if (accumulated > 10) throw new Error('Limite de 10 unidades por produto.');
+    if (!product.variants.length && product.stock != null && accumulated > product.stock) throw new Error('Estoque insuficiente: ' + product.name);
     totals.set(id, accumulated);
-    return { id, quantity, color };
+    return { id, quantity, color, variant_id: variantId, unit_price: unitPrice };
   });
 }
 
@@ -154,13 +184,13 @@ async function recalculateFreight(cep, cart, shippingId, PRODUCTS) {
     throw new Error('Configuração de frete incompleta.');
   }
 
-  const products = cart.map(({ id, quantity }) => {
+  const products = cart.map(({ id, quantity, unit_price }) => {
     const p = PRODUCTS[id];
 
     return {
       name: p.name,
       quantity,
-      unitary_value: p.price,
+      unitary_value: unit_price,
       weight: p.weight,
       width: p.width,
       height: p.height,
@@ -359,7 +389,7 @@ export default async function handler(req, res) {
     const subtotal = money(
       cart.reduce(
         (sum, item) =>
-          sum + PRODUCTS[item.id].price * item.quantity,
+          sum + item.unit_price * item.quantity,
         0
       )
     );
@@ -394,12 +424,13 @@ export default async function handler(req, res) {
 
     const externalReference = `IPB-${idempotencyKey}`;
 
-    const orderItems = cart.map(({ id, quantity, color }) => ({
+    const orderItems = cart.map(({ id, quantity, color, variant_id, unit_price }) => ({
       id,
       name: PRODUCTS[id].name,
       quantity,
       color,
-      unit_price: PRODUCTS[id].price
+      ...(variant_id == null ? {} : { variant_id }),
+      unit_price
     }));
 
     const orderData = {
