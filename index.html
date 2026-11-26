@@ -333,6 +333,62 @@
         let cart = [];
         let checkoutStarted = false;
 
+        // Cores derivadas exclusivamente do nome do arquivo da imagem.
+        const COLOR_ALIASES = {
+            gold:'Dourado', dourado:'Dourado', dourada:'Dourado', verde:'Verde', green:'Verde',
+            preto:'Preto', black:'Preto', branca:'Branco', branco:'Branco', white:'Branco',
+            azul:'Azul', blue:'Azul', roxo:'Roxo', purple:'Roxo', rosa:'Rosa', pink:'Rosa',
+            prata:'Prata', silver:'Prata', cinza:'Cinza', gray:'Cinza', grey:'Cinza',
+            grafite:'Grafite', graphite:'Grafite', vermelho:'Vermelho', red:'Vermelho',
+            amarelo:'Amarelo', yellow:'Amarelo', laranja:'Laranja', orange:'Laranja',
+            titanium:'Titânio', titanio:'Titânio', natural:'Natural', desert:'Deserto', deserto:'Deserto',
+            midnight:'Meia-noite', starlight:'Estelar', ultramarine:'Ultramarino', teal:'Verde-azulado'
+        };
+        function productColors(product) {
+            const filename = String(product.img || '').split(/[?#]/)[0].split('/').pop();
+            const normalized = filename.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+            const tokens = normalized.replace(/\.[a-z0-9]+$/,'').split(/[^a-z0-9]+/);
+            const colors = [];
+            for (let i=0; i<tokens.length; i++) {
+                const pair = tokens.slice(i,i+2).join('-');
+                const compound = {'rose-gold':'Rosa dourado','space-gray':'Cinza espacial','space-grey':'Cinza espacial','midnight-green':'Verde meia-noite','deep-purple':'Roxo profundo','sierra-blue':'Azul Sierra','pacific-blue':'Azul Pacífico','natural-titanium':'Titânio natural','desert-titanium':'Titânio deserto','black-titanium':'Titânio preto','white-titanium':'Titânio branco','blue-titanium':'Titânio azul','titanio-natural':'Titânio natural','titanio-preto':'Titânio preto','titanio-branco':'Titânio branco','titanio-azul':'Titânio azul','titanio-deserto':'Titânio deserto','meia-noite':'Meia-noite'};
+                if (Object.hasOwn(compound,pair)) { colors.push(compound[pair]); i++; }
+                else if (Object.hasOwn(COLOR_ALIASES,tokens[i])) colors.push(COLOR_ALIASES[tokens[i]]);
+            }
+            return [...new Set(colors)];
+        }
+        function defaultColor(product, previous) {
+            const colors = productColors(product);
+            return colors.includes(previous) ? previous : colors.length === 1 ? colors[0] : '';
+        }
+        function colorsReady() {
+            return cart.every(item => productColors(item).includes(item.color));
+        }
+        function requireColors() {
+            if (colorsReady()) return true;
+            alert('Selecione uma cor disponível para cada produto. Se não houver opções, entre em contato com a loja.');
+            return false;
+        }
+        function changeColor(idx, color) {
+            const item = cart[idx];
+            if (!item || !productColors(item).includes(color)) return;
+            const other = cart.findIndex((x,i) => i !== idx && x.id === item.id && x.color === color);
+            if (other >= 0) { cart[other].quantity += item.quantity; cart.splice(idx,1); }
+            else item.color = color;
+            checkoutStarted = false;
+            resetCheckoutState(); saveCart(); updateCartUI();
+        }
+        function colorSelector(item, idx) {
+            const colors = productColors(item);
+            if (!colors.length) return '<p class="text-xs text-red-600 mt-2">Cor não cadastrada. Consulte a loja.</p>';
+            return `<label for="cartColor${idx}" class="block text-xs font-medium mt-2">Escolha a cor:</label>
+                <select id="cartColor${idx}" onchange="changeColor(${idx}, this.value)" class="w-full border rounded-lg p-2 mt-1 text-xs bg-white">
+                    <option value="" disabled ${!item.color ? 'selected' : ''}>Selecione a cor</option>
+                    ${colors.map(color => `<option value="${color}" ${item.color === color ? 'selected' : ''}>${color}</option>`).join('')}
+                </select>
+                ${colors.length > 1 ? `<button type="button" onclick="addToCart(${item.id})" class="text-xs text-blue-600 mt-2">Adicionar outra cor</button>` : ''}`;
+        }
+
         function restoreCart() {
         try {
             const stored = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]');
@@ -341,9 +397,13 @@
                     .reduce((acc, x) => {
                         const p = products.find(p => p.id === x.id);
                         if (p && p.indisponivel === false) {
-                            const existing = acc.find(i => i.id === p.id);
-                            if (existing) existing.quantity = Math.min(10, existing.quantity + x.quantity);
-                            else acc.push({...p, quantity: Math.min(10, x.quantity)});
+                            const color = defaultColor(p, x.color);
+                            const remaining = 10 - acc.filter(i => i.id === p.id).reduce((n,i) => n+i.quantity,0);
+                            const quantity = Math.min(remaining, x.quantity);
+                            if (quantity <= 0) return acc;
+                            const existing = acc.find(i => i.id === p.id && i.color === color);
+                            if (existing) existing.quantity += quantity;
+                            else acc.push({...p, color, quantity});
                         }
                         return acc;
                     }, []);
@@ -353,11 +413,11 @@
         }
 
         function saveCart() {
-            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity}) => ({id, quantity})))); } catch (_) {}
+            try { localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map(({id, quantity, color}) => ({id, quantity, color})))); } catch (_) {}
         }
 
         function startCheckout() {
-            if (!cart.length) return;
+            if (!cart.length || !requireColors()) return;
             checkoutStarted = true;
             updateCartUI();
             document.getElementById('checkoutForm').scrollIntoView({behavior:'smooth', block:'start'});
@@ -425,11 +485,12 @@
         function addToCart(id) {
             const prod = products.find(p => p.id === id);
             if (!prod || prod.indisponivel !== false) return alert('Produto indisponível para compra.');
-            const existing = cart.find(item => item.id === id);
-            if (existing) {
-                if (existing.quantity >= 10) return alert('Limite de 10 unidades por produto.');
-                existing.quantity++;
-            } else cart.push({...prod, quantity:1});
+            const color = defaultColor(prod);
+            const totalQuantity = cart.filter(item => item.id === id).reduce((n,item) => n+item.quantity,0);
+            if (totalQuantity >= 10) return alert('Limite de 10 unidades por produto.');
+            const existing = cart.find(item => item.id === id && item.color === color);
+            if (existing) existing.quantity++;
+            else cart.push({...prod, color, quantity:1});
             checkoutStarted = false;
             resetCheckoutState(); saveCart(); updateCartUI();
             document.getElementById('cartModal').classList.remove('hidden');
@@ -446,7 +507,7 @@
             if (!item) return;
             const next = item.quantity + delta;
             if (next < 1) return removeFromCart(idx);
-            if (next > 10) return alert('Limite de 10 unidades por produto.');
+            if (cart.filter(x => x.id === item.id).reduce((n,x) => n+x.quantity,0) + delta > 10) return alert('Limite de 10 unidades por produto.');
             item.quantity = next;
             resetCheckoutState(); saveCart(); updateCartUI();
         }
@@ -463,7 +524,7 @@
                     <p class="text-xs text-blue-600 font-bold mt-1">R$ ${brl(item.price * item.quantity)}</p>
                     <div class="flex items-center gap-3 mt-2"><button type="button" onclick="changeQuantity(${idx},-1)" class="border rounded px-2 py-1" aria-label="Diminuir quantidade">−</button>
                     <span class="text-sm font-semibold">${item.quantity}</span><button type="button" onclick="changeQuantity(${idx},1)" class="border rounded px-2 py-1" aria-label="Aumentar quantidade">+</button>
-                    <button type="button" onclick="removeFromCart(${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div></div></div>`).join('');
+                    <button type="button" onclick="removeFromCart(${idx})" class="ml-auto text-red-600 text-xs">Excluir</button></div>${colorSelector(item, idx)}</div></div>`).join('');
             }
             document.getElementById('checkoutStartButton').classList.toggle('hidden', !cart.length || checkoutStarted);
             document.getElementById('checkoutForm').classList.toggle('hidden', !cart.length || !checkoutStarted);
@@ -524,6 +585,7 @@
 
         async function calculateShipping() {
             if (!cart.length) return alert('Adicione um produto ao carrinho.');
+            if (!requireColors()) return;
             const c = customerData();
             if (c.cep.length !== 8) return alert('Digite um CEP válido.');
             const btn = document.getElementById('btnCalcFrete');
@@ -577,7 +639,7 @@
             const error = document.getElementById('paymentError');
             error.classList.add('hidden'); error.innerText = '';
             const c = customerData();
-            if (!selectedShipping) return;
+            if (!selectedShipping || !requireColors()) return;
             document.getElementById('paymentBlock').classList.remove('hidden');
             const missing = [];
             if (!c.name) missing.push('nome');
@@ -636,11 +698,12 @@
                             const paymentError = document.getElementById('paymentError');
                             paymentError.classList.add('hidden');
                             try {
+                                if (!colorsReady()) throw new Error('Selecione uma cor para cada produto.');
                                 const response = await fetch('/api/pagamento', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
-                                        cart: cart.map(item => ({ id: item.id, quantity: item.quantity })),
+                                        cart: cart.map(item => ({ id: item.id, quantity: item.quantity, color: item.color })),
                                         customer: c,
                                         shippingId: selectedShipping.id,
                                         expectedTotal: total,
