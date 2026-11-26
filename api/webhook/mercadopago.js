@@ -1,4 +1,4 @@
-mport { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { enviarWhatsApp } from '../whatsapp.js';
 
 const MP_URL = 'https://api.mercadopago.com/v1/payments';
