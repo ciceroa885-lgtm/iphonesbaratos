@@ -1,4 +1,3 @@
-
 const SITE = 'https://www.iphonesbaratos.com.br';
 
 function xml(value) {
@@ -14,6 +13,30 @@ function tag(name, value) {
   return `<g:${name}>${xml(value)}</g:${name}>`;
 }
 
+function variantAvailable(p, v) {
+  return p.indisponivel === false && v &&
+    v.indisponivel === false && Number.isInteger(v.stock) && v.stock > 0;
+}
+
+function catalogView(p) {
+  const variants = Array.isArray(p.variants) ? p.variants : [];
+  if (!variants.length) return p;
+
+  const cheapestAvailable = variants
+    .filter(v => variantAvailable(p, v))
+    .sort((a, b) => Number(a.price) - Number(b.price))[0];
+  const variant = cheapestAvailable || variants[0];
+
+  return {
+    ...p,
+    price: variant.price,
+    original_price: variant.original_price,
+    promotional_price: variant.promotional_price,
+    img: variant.img || p.img,
+    indisponivel: !variantAvailable(p, variant)
+  };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -23,55 +46,38 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_SECRET_KEY;
-
-    if (!url || !key) {
-      throw new Error('Supabase não configurado.');
-    }
-
-    const response = await fetch(
-      `${url.replace(/\/$/, '')}/rest/v1/products` +
-      '?active=eq.true' +
-      '&select=id,name,price,promotional_price,category,warranty,img,description,indisponivel,brand,gtin,mpn,condition' +
-      '&order=id.asc',
-      {
-        headers: {
-          apikey: key,
-          Authorization: `Bearer ${key}`
-        },
-        cache: 'no-store'
-      }
-    );
+    // Mesma fonte de dados utilizada pela vitrine e pela página individual.
+    const response = await fetch(`${SITE}/api/products`, {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    });
 
     if (!response.ok) {
       throw new Error('Falha na consulta do catálogo.');
     }
 
     const products = await response.json();
+    if (!Array.isArray(products)) {
+      throw new Error('Formato de catálogo inválido.');
+    }
 
     const items = products
+      .filter(p => Number(p.id) !== 35)
+      .map(catalogView)
       .filter(p =>
         ['new', 'used', 'refurbished'].includes(p.condition) &&
-        p.name &&
-        p.img &&
-        Number(p.price) > 0
+        p.name && p.img &&
+        Number.isFinite(Number(p.price)) && Number(p.price) > 0
       )
+      .sort((a, b) => Number(a.id) - Number(b.id))
       .map(p => {
         const link = `${SITE}/produto.html?id=${p.id}`;
         const image = new URL(p.img, SITE + '/').href;
-
-        const description =
-          p.description?.trim() ||
-          `${p.name} — ${p.warranty}`;
-
-        const price = Number(p.price);
-        const sale = Number(p.promotional_price);
-
-        const hasPromotion =
-          p.promotional_price != null &&
-          sale > 0 &&
-          sale < price;
+        const description = p.description?.trim() || `${p.name} — ${p.warranty}`;
+        const effectivePrice = Number(p.price);
+        const originalPrice = Number(p.original_price);
+        const hasPromotion = Number.isFinite(originalPrice) && originalPrice > effectivePrice;
+        const price = hasPromotion ? originalPrice : effectivePrice;
 
         return `
           <item>
@@ -80,12 +86,9 @@ export default async function handler(req, res) {
             ${tag('description', description)}
             ${tag('link', link)}
             ${tag('image_link', image)}
-            ${tag('availability',
-              p.indisponivel ? 'out_of_stock' : 'in_stock')}
+            ${tag('availability', p.indisponivel ? 'out_of_stock' : 'in_stock')}
             ${tag('price', `${price.toFixed(2)} BRL`)}
-            ${hasPromotion
-              ? tag('sale_price', `${sale.toFixed(2)} BRL`)
-              : ''}
+            ${hasPromotion ? tag('sale_price', `${effectivePrice.toFixed(2)} BRL`) : ''}
             ${tag('brand', p.brand || 'Apple')}
             ${tag('condition', p.condition)}
             ${tag('google_product_category', '267')}
@@ -105,18 +108,10 @@ export default async function handler(req, res) {
   </channel>
 </rss>`;
 
-    res.setHeader(
-      'Content-Type',
-      'application/xml; charset=utf-8'
-    );
-
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     return res.status(200).send(feed);
-
   } catch (error) {
     console.error('Erro no feed Google Shopping:', error.message);
-
-    return res.status(503).send(
-      'Feed temporariamente indisponível.'
-    );
+    return res.status(503).send('Feed temporariamente indisponível.');
   }
 }
