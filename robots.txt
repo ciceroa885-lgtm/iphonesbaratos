@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Allow: /api/products$
 Disallow: /api/
 
 Sitemap: https://www.iphonesbaratos.com.br/sitemap.xml
