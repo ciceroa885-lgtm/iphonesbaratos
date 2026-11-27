@@ -470,7 +470,12 @@
         function catalogView(product) {
             const variants = Array.isArray(product.variants) ? product.variants : [];
             if (!variants.length) return product;
-            const variant = variants.find(v => v.id === selectedVariants.get(product.id)) || variants[0];
+            const cheapestAvailable = variants
+                .filter(v => variantAvailable(product, v))
+                .sort((a, b) => Number(a.price) - Number(b.price))[0];
+            const variant = variants.find(v => v.id === selectedVariants.get(product.id))
+                || cheapestAvailable
+                || variants[0];
             return {...product, price: variant.price, original_price: variant.original_price,
                 promotional_price: variant.promotional_price, img: variant.img || product.img,
                 indisponivel: !variantAvailable(product, variant), selectedVariant: variant};
