@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     const response = await fetch(
       `${baseUrl}/rest/v1/products` +
       '?active=eq.true' +
-      '&select=id,name,price,promotional_price,category,warranty,img,stock,indisponivel,ordem' +
+      '&select=id,name,price,promotional_price,category,warranty,img,stock,indisponivel,ordem,description,brand,condition,gtin,mpn' +
       '&order=ordem.asc.nullslast,id.asc',
       options
     );
@@ -129,6 +129,14 @@ export default async function handler(req, res) {
         indisponivel: product.indisponivel,
         ordem: product.ordem,
 
+        // Informações complementares para SEO
+        description: product.description ?? null,
+        brand: product.brand ?? null,
+        condition: product.condition ?? null,
+        gtin: product.gtin ?? null,
+        mpn: product.mpn ?? null,
+
+        // Variações de cores
         has_variants: variants.length > 0,
         variants: variants
       };
